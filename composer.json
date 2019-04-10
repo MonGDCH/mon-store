@@ -1,0 +1,27 @@
+{
+    "name": "mongdch/store",
+    "description": "The PHP store util",
+    "version": "1.0.0",
+    "keywords": [
+        "session",
+        "cookie",
+        "store",
+        "file",
+        "cache",
+        "redis"
+    ],
+    "authors": [
+        {
+            "name": "MonGDCH",
+            "email": "985558837@qq.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "mon\\store\\": "src/"
+        }
+    }
+}
