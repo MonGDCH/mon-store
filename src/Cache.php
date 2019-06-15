@@ -5,18 +5,18 @@ use mon\store\File;
 use InvalidArgumentException;
 
 /**
-* 文件缓存类
-*
-* @see 第一个版本。只支持文件缓存，待后续扩展
-* @author Mon <985558837@qq.com>
-* @version 1.0  2017-12-01
-*/
+ * 文件缓存类
+ *
+ * @see 第一个版本。只支持文件缓存，待后续扩展
+ * @author Mon <985558837@qq.com>
+ * @version 1.0  2017-12-01
+ */
 class Cache
 {
     /**
      * 配置信息
-     * 
-     * @var [type]
+     *
+     * @var array
      */
     protected $config = [
         'expire'        => 0,
@@ -43,16 +43,16 @@ class Cache
     /**
      * 构造方法
      *
-     * @param [type] $config 缓存配置
+     * @param array $config 缓存配置
      */
     public function __construct(array $config = [])
     {
-        if(empty($config['path']) || !isset($config['path']) || empty($config['path'])){
+        if (empty($config['path']) || !isset($config['path']) || empty($config['path'])) {
             throw new InvalidArgumentException("config required path");
         }
         // 定义配置
-        $this->config = array_merge($this->config, $config);
-        if(substr($this->config['path'], -1) != DIRECTORY_SEPARATOR){
+        $this->config = array_merge((array)$this->config, $config);
+        if (substr($this->config['path'], -1) != DIRECTORY_SEPARATOR) {
             $this->config['path'] .= DIRECTORY_SEPARATOR;
         }
         // 加载驱动
@@ -69,7 +69,7 @@ class Cache
     public function init()
     {
         // 创建项目缓存目录
-        if(!is_dir($this->config['path'])){
+        if (!is_dir($this->config['path'])) {
             $this->drive->createDir($this->config['path']);
         }
     }
@@ -83,16 +83,16 @@ class Cache
     protected function getCacheKey(string $name)
     {
         $name = md5($name);
-        if($this->config['cache_subdir']){
+        if ($this->config['cache_subdir']) {
             // 使用子目录
             $name = substr($name, 0, 2) . DIRECTORY_SEPARATOR . substr($name, 2);
         }
-        if($this->config['prefix']){
+        if ($this->config['prefix']) {
             $name = $this->config['prefix'] . DIRECTORY_SEPARATOR . $name;
         }
         $filename = $this->config['path'] . $name . '.php';
         $dir      = dirname($filename);
-        if (!is_dir($dir)){
+        if (!is_dir($dir)) {
             $this->drive->createDir($dir);
         }
 
@@ -102,34 +102,33 @@ class Cache
     /**
      * 获取缓存内容
      *
-     * @param  string $name    [description]
-     * @param  mixed  $default [description]
+     * @param  string $name    名称
+     * @param  mixed  $default 默认值
      * @return [type]          [description]
      */
     public function get(string $name, $default = false)
     {
         $filename = $this->getCacheKey($name);
-        if(!is_file($filename)){
+        if (!is_file($filename)) {
             return $default;
         }
         $content = $this->drive->read($filename);
-        if(false !== $content){
-            $expire = (int) substr($content, 8, 12);
-            if(0 != $expire && $_SERVER['REQUEST_TIME'] > filemtime($filename) + $expire){
+        if (false !== $content) {
+            $expire = (int)substr($content, 8, 12);
+            if (0 != $expire && $_SERVER['REQUEST_TIME'] > filemtime($filename) + $expire) {
                 //缓存过期删除缓存文件
                 $this->drive->removeFile($filename);
                 return $default;
             }
             $content = substr($content, 20, -3);
-            if($this->config['data_compress'] && function_exists('gzcompress')){
+            if ($this->config['data_compress'] && function_exists('gzcompress')) {
                 //启用数据压缩
                 $content = gzuncompress($content);
             }
 
             $content = unserialize($content);
             return $content;
-        }
-        else{
+        } else {
             return $default;
         }
     }
@@ -137,33 +136,32 @@ class Cache
     /**
      * 写入缓存
      *
-     * @param string    $name 缓存变量名
-     * @param mixed     $value  存储数据
+     * @param string    $name    缓存变量名
+     * @param mixed     $value   存储数据
      * @param int       $expire  有效时间 0为永久
      * @return boolean
      */
     public function set(string $name, $value, $expire = null)
     {
-        if(is_null($expire)){
+        if (is_null($expire)) {
             $expire = $this->config['expire'];
         }
         $filename = $this->getCacheKey($name);
-        if($this->tag && !is_file($filename)){
+        if ($this->tag && !is_file($filename)) {
             $first = true;
         }
         $data = serialize($value);
-        if($this->config['data_compress'] && function_exists('gzcompress')){
+        if ($this->config['data_compress'] && function_exists('gzcompress')) {
             //数据压缩
             $data = gzcompress($data, 3);
         }
         $data   = "<?php\n//" . sprintf('%012d', $expire) . $data . "\n?>";
         $result = $this->drive->createFile($data, $filename, false);
-        if($result){
-            isset($first) && $this->setTagItem($filename);
+        if ($result) {
+            isset($first) && $this->setTagItem((string)$filename);
             clearstatcache();
             return true;
-        }
-        else{
+        } else {
             return false;
         }
     }
@@ -171,7 +169,7 @@ class Cache
     /**
      * 是否存在缓存
      *
-     * @param  string  $name [description]
+     * @param  string  $name 名称
      * @return boolean       [description]
      */
     public function has(string $name)
@@ -197,14 +195,12 @@ class Cache
      */
     public function clear()
     {
-        $files = (array) glob($this->config['path'] . ($this->config['prefix'] ? $this->config['prefix'] . DIRECTORY_SEPARATOR : '') . '*');
-        foreach($files as $path)
-        {
-            if(is_dir($path)){
+        $files = (array)glob($this->config['path'] . ($this->config['prefix'] ? $this->config['prefix'] . DIRECTORY_SEPARATOR : '') . '*');
+        foreach ($files as $path) {
+            if (is_dir($path)) {
                 array_map('unlink', glob($path . '/*.php'));
                 rmdir($path);
-            }
-            else{
+            } else {
                 unlink($path);
             }
         }
@@ -221,22 +217,19 @@ class Cache
      */
     public function tag(string $name, $keys = null, bool $overlay = false)
     {
-        if(empty($name)){
+        if (empty($name)) {
             throw new InvalidArgumentException("required tag name");
-        }
-        elseif(is_null($keys)){
+        } elseif (is_null($keys)) {
             $this->tag = $name;
-        }
-        else{
+        } else {
             $key = 'tag_' . md5($name);
-            if(is_string($keys)){
+            if (is_string($keys)) {
                 $keys = explode(',', $keys);
             }
             $keys = array_map([$this, 'getCacheKey'], $keys);
-            if($overlay){
+            if ($overlay) {
                 $value = $keys;
-            }
-            else{
+            } else {
                 $value = array_unique(array_merge($this->getTagItem($name), $keys));
             }
             $this->set($key, implode(',', $value), 0);
@@ -252,15 +245,14 @@ class Cache
      */
     protected function setTagItem(string $name)
     {
-        if($this->tag){
+        if ($this->tag) {
             $key = 'tag_' . md5($this->tag);
             $this->tag = null;
-            if($this->has($key)){
+            if ($this->has($key)) {
                 $value = explode(',', $this->get($key));
                 $value[] = $name;
                 $value = implode(',', array_unique($value));
-            }
-            else{
+            } else {
                 $value = $name;
             }
             $this->set($key, $value, 0);
@@ -277,10 +269,9 @@ class Cache
     {
         $key   = 'tag_' . md5($tag);
         $value = $this->get($key);
-        if($value){
+        if ($value) {
             return array_filter(explode(',', $value));
-        }
-        else{
+        } else {
             return [];
         }
     }

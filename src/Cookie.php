@@ -11,8 +11,8 @@ class Cookie
 {
     /**
      * Cookie相关配置
-     * 
-     * @var [type]
+     *
+     * @var array
      */
     protected $config = [
         // cookie 名称前缀
@@ -45,21 +45,21 @@ class Cookie
      */
     public function __construct(array $config = [])
     {
-        $this->config = array_merge($this->config, $config);
+        $this->config = array_merge((array)$this->config, $config);
     }
 
     /**
      * 注册Cookie
      * 
-     * @param  array  $config [description]
+     * @param  array  $config 配置信息
      * @return [type]         [description]
      */
     public function register(array $config = [])
     {
-        if(!empty($config)){
-            $this->config = array_merge($this->config, array_change_key_case($config));
+        if (!empty($config)) {
+            $this->config = array_merge((array)$this->config, array_change_key_case($config));
         }
-        if(!empty($this->config['httponly'])){
+        if (!empty($this->config['httponly'])) {
             ini_set('session.cookie_httponly', 1);
         }
 
@@ -69,12 +69,12 @@ class Cookie
     /**
      * 设置获取cookie前缀
      * 
-     * @param  string $prefix [description]
+     * @param  string $prefix Cookie前缀
      * @return [type]         [description]
      */
     public function prefix($prefix = '')
     {
-        if(empty($prefix)){
+        if (empty($prefix)) {
             return $this->config['prefix'];
         }
 
@@ -92,20 +92,19 @@ class Cookie
     {
         !isset($this->init) && $this->register();
         // 参数设置(会覆盖黙认设置)
-        if(!empty($option)){
-            $config = array_merge($this->config, array_change_key_case($option));
-        }
-        else {
+        if (!empty($option)) {
+            $config = array_merge((array)$this->config, array_change_key_case($option));
+        } else {
             $config = $this->config;
         }
         $name = $config['prefix'] . $key;
         // 设置cookie
-        if(is_array($value)){
+        if (is_array($value)) {
             array_walk_recursive($value, [$this, 'jsonFormatProtect'], 'encode');
             $value = 'mon:' . json_encode($value, JSON_UNESCAPED_UNICODE);
         }
         $expire = !empty($config['expire']) ? $_SERVER['REQUEST_TIME'] + intval($config['expire']) : 0;
-        if($config['setcookie']){
+        if ($config['setcookie']) {
             setcookie($name, $value, $expire, $config['path'], $config['domain'], $config['secure'], $config['httponly']);
         }
         $_COOKIE[$name] = $value;
@@ -121,7 +120,7 @@ class Cookie
      */
     public function forever(string $name, $value = '', array $option = [])
     {
-        if(is_null($option) || !is_array($option)){
+        if (is_null($option) || !is_array($option)) {
             $option = [];
         }
         $option['expire'] = 315360000;
@@ -131,7 +130,7 @@ class Cookie
     /**
      * 判断Cookie数据
      * 
-     * @param string        $name cookie名称
+     * @param string        $name   cookie名称
      * @param string|null   $prefix cookie前缀
      * @return bool
      */
@@ -147,9 +146,9 @@ class Cookie
     /**
      * 获取cookie值
      * 
-     * @param  string $key     [description]
-     * @param  mixed  $default [description]
-     * @param  mixed  $prefix  [description]
+     * @param  string $key     键名
+     * @param  mixed  $default 默认值
+     * @param  mixed  $prefix  前缀
      * @return [type]          [description]
      */
     public function get(string $key = '', $default = null, $prefix = null)
@@ -158,42 +157,38 @@ class Cookie
 
         $prefix = !is_null($prefix) ? $prefix : $this->config['prefix'];
         $name = $prefix . $key;
-        if($key == ''){
+        if ($key == '') {
             // 获取全部
-            if($prefix){
+            if ($prefix) {
                 $value = [];
-                foreach ($_COOKIE as $k => $val)
-                {
-                    if(0 === strpos($k, $prefix)){
+                foreach ($_COOKIE as $k => $val) {
+                    if (0 === strpos($k, $prefix)) {
                         $value[$k] = $val;
                     }
                 }
-            }
-            else{
+            } else {
                 $value = $_COOKIE;
             }
-        }
-        elseif(isset($_COOKIE[$name])){
+        } elseif (isset($_COOKIE[$name])) {
             $value = $_COOKIE[$name];
             // 判断是否需要转换数据
-            if(0 === strpos($value, 'mon:')){
+            if (0 === strpos($value, 'mon:')) {
                 $value = substr($value, 4);
                 $value = json_decode($value, true);
                 array_walk_recursive($value, [$this, 'jsonFormatProtect'], 'decode');
             }
-        }
-        else{
+        } else {
             $value = null;
         }
 
-        return ( is_null($value) || empty($value) ) ? $default : $value;
+        return (is_null($value) || empty($value)) ? $default : $value;
     }
 
     /**
      * 删除cookie
      * 
-     * @param  string $key    [description]
-     * @param  mixed  $prefix [description]
+     * @param  string $key    键值
+     * @param  mixed  $prefix 前缀
      * @return [type]         [description]
      */
     public function del(string $key, $prefix = null)
@@ -202,7 +197,7 @@ class Cookie
         $config = $this->config;
         $prefix = !is_null($prefix) ? $prefix : $config['prefix'];
         $name   = $prefix . $key;
-        if($config['setcookie']){
+        if ($config['setcookie']) {
             setcookie($name, '', $_SERVER['REQUEST_TIME'] - 3600, $config['path'], $config['domain'], $config['secure'], $config['httponly']);
         }
         // 删除指定cookie
@@ -212,23 +207,22 @@ class Cookie
     /**
      * 清空所有cookie
      *
-     * @param  mixed  $prefix [description]
+     * @param  mixed  $prefix 前缀
      * @return [type]         [description]
      */
     public function clear($prefix = null)
     {
-        if(empty($_COOKIE)) return;
+        if (empty($_COOKIE)) return;
         !isset($this->init) && $this->register();
 
         // 要删除的cookie前缀，不指定则删除config设置的指定前缀
         $config = $this->config;
         $prefix = !is_null($prefix) ? $prefix : $config['prefix'];
-        if($prefix){
+        if ($prefix) {
             // 如果前缀为空字符串将不作处理直接返回
-            foreach($_COOKIE as $key => $val)
-            {
-                if(0 === strpos($key, $prefix)){
-                    if($config['setcookie']){
+            foreach ($_COOKIE as $key => $val) {
+                if (0 === strpos($key, $prefix)) {
+                    if ($config['setcookie']) {
                         setcookie($key, '', $_SERVER['REQUEST_TIME'] - 3600, $config['path'], $config['domain'], $config['secure'], $config['httponly']);
                     }
                     unset($_COOKIE[$key]);
@@ -242,14 +236,14 @@ class Cookie
     /**
      * 数组对象的json格式切换
      * 
-     * @param  [type] &$val [description]
-     * @param  [type] $key  [description]
-     * @param  string $type encode || decode
+     * @param  [type] &$val 值
+     * @param  [type] $key  键
+     * @param  string $type 类型 encode || decode
      * @return [type]       [description]
      */
     private function jsonFormatProtect(&$val, $key, $type = 'encode')
     {
-        if(!empty($val) && true !== $val){
+        if (!empty($val) && true !== $val) {
             $val = 'decode' == $type ? urldecode($val) : urlencode($val);
         }
     }

@@ -11,7 +11,7 @@ use InvalidArgumentException;
  * @author Mon <985558837@qq.com>
  * @version 1.0 2018-05-20
  */
-class Redis
+class Rdb
 {
     /**
      * redis链接实例
@@ -38,16 +38,16 @@ class Redis
      */
     public function __construct($config = [])
     {
-        if(!extension_loaded('redis')){
+        if (!extension_loaded('redis')) {
             throw new BadFunctionCallException('not support: redis');
         }
-        if(empty($config)){
+        if (empty($config)) {
             $this->config = array_merge($this->config, $config);
         }
-        
+
         $this->handler = new Redis();
         $this->handler->connect($this->config['host'], $this->config['port']);
-        if($this->config['password']){
+        if ($this->config['password']) {
             $this->handler->auth($this->config['password']);
         }
     }
@@ -312,18 +312,16 @@ class Redis
     public function hDel($key, $field)
     {
         $delNum = 0;
-        if(is_array($field)){
+        if (is_array($field)) {
             // 字符串，批量删除
-            foreach($field as $row)
-            {
+            foreach ($field as $row) {
                 $delNum += $this->handler->hDel($key, $row);
             }
-        }
-        else{
+        } else {
             // 字符串，删除单个
             $delNum += $this->handler->hDel($key, $field);
         }
- 
+
         return $delNum;
     }
 
@@ -360,11 +358,11 @@ class Redis
      */
     public function hMset($key, $value)
     {
-        if(!is_array($value)){
+        if (!is_array($value)) {
             return false;
         }
 
-        return $this->handler->hMset($key, $value); 
+        return $this->handler->hMset($key, $value);
     }
 
     /**
@@ -375,7 +373,7 @@ class Redis
      */
     public function hMget($key, $field)
     {
-        if(!is_array($field)){
+        if (!is_array($field)) {
             $field = explode(',', $field);
         }
 
@@ -468,9 +466,9 @@ class Redis
      */
     public function rPush($key, $value)
     {
-        return $this->handler->rPush($key, $value); 
+        return $this->handler->rPush($key, $value);
     }
-     
+
     /**
      * 在队列尾部插入一个元素 如果key不存在，什么也不做
      * 
@@ -482,7 +480,7 @@ class Redis
     {
         return $this->handler->rPushx($key, $value);
     }
-     
+
     /**
      * 在队列头部插入一个元素
      * 
@@ -494,7 +492,7 @@ class Redis
     {
         return $this->handler->lPush($key, $value);
     }
-     
+
     /**
      * 在队列头插入一个元素 如果key不存在，什么也不做
      * @param [type] $key
@@ -505,7 +503,7 @@ class Redis
     {
         return $this->handler->lPushx($key, $value);
     }
-     
+
     /**
      * 返回队列长度
      * 
@@ -513,7 +511,7 @@ class Redis
      */
     public function lLen($key)
     {
-        return $this->handler->lLen($key); 
+        return $this->handler->lLen($key);
     }
 
     /**
@@ -524,7 +522,7 @@ class Redis
      */
     public function lSize($key)
     {
-        return $this->handler->lSize($key)
+        return $this->handler->lSize($key);
     }
 
     /**
@@ -586,7 +584,7 @@ class Redis
     {
         return $this->handler->lSet($key, $index, $value);
     }
-     
+
     /**
      * 删除值为vaule的count个元素
      * PHP-redis扩展的数据顺序与命令的顺序不太一样，不知道是不是bug
@@ -602,7 +600,7 @@ class Redis
     {
         return $this->handler->lRem($key, $value, $count);
     }
-     
+
     /**
      * 删除并返回队列中的头元素。
      * 
@@ -612,7 +610,7 @@ class Redis
     {
         return $this->handler->lPop($key);
     }
-     
+
     /**
      * 删除并返回队列中的尾元素
      * 
@@ -658,7 +656,7 @@ class Redis
     {
         return $this->handler->sIsMember($key, $value);
     }
-    
+
     /**
      * 添加集合。由于版本问题，扩展不支持批量添加。这里做了封装
      *
@@ -668,15 +666,13 @@ class Redis
      */
     public function sAdd($key, $value)
     {
-        if(!is_array($value)){
+        if (!is_array($value)) {
             $arr = array($value);
-        }
-        else{
+        } else {
             $arr = $value;
         }
 
-        foreach($arr as $row)
-        {
+        foreach ($arr as $row) {
             $this->handler->sAdd($key, $row);
         }
     }
@@ -835,7 +831,7 @@ class Redis
      */
     public function zAdd($key, $order, $value)
     {
-        return $this->handler->zAdd($key, $order, $value);   
+        return $this->handler->zAdd($key, $order, $value);
     }
 
     /**
@@ -872,7 +868,7 @@ class Redis
      */
     public function zRem($key, $value)
     {
-        return $this->handler->zRem($key,$value);
+        return $this->handler->zRem($key, $value);
     }
 
     /**
@@ -913,11 +909,11 @@ class Redis
      *     limit=>array(0,1) 表示从0开始，取一条记录。
      * @return array|bool
      */
-    public function zRangeByScore($key, $start='-inf', $end="+inf", $option=array())
+    public function zRangeByScore($key, $start = '-inf', $end = "+inf", $option = array())
     {
         return $this->handler->zRangeByScore($key, $start, $end, $option);
     }
-     
+
     /**
      * 集合以order递减排列后，返回指定order之间的元素。
      * min和max可以是-inf和+inf　表示最大值，最小值
@@ -930,11 +926,11 @@ class Redis
      *     limit=>array(0,1) 表示从0开始，取一条记录。
      * @return array|bool
      */
-    public function zRevRangeByScore($key, $start='-inf', $end="+inf", $option=array())
+    public function zRevRangeByScore($key, $start = '-inf', $end = "+inf", $option = array())
     {
         return $this->handler->zRevRangeByScore($key, $start, $end, $option);
     }
-     
+
     /**
      * 返回order值在start end之间的数量
      * 
@@ -946,18 +942,18 @@ class Redis
     {
         return $this->handler->zCount($key, $start, $end);
     }
-     
+
     /**
      * 返回值为value的order值
      * 
      * @param [type] $key
      * @param [type] $value
      */
-    public function zScore($key,$value)
+    public function zScore($key, $value)
     {
         return $this->handler->zScore($key, $value);
     }
-     
+
     /**
      * 返回集合以score递增加排序后，指定成员的排序号，从0开始。
      * 
@@ -968,7 +964,7 @@ class Redis
     {
         return $this->handler->zRank($key, $value);
     }
-     
+
     /**
      * 返回集合以score递增加排序后，指定成员的排序号，从0开始。
      * 
@@ -979,7 +975,7 @@ class Redis
     {
         return $this->handler->zRevRank($key, $value);
     }
-     
+
     /**
      * 删除集合中，score值在start end之间的元素　包括start end
      * min和max可以是-inf和+inf　表示最大值，最小值
@@ -1046,7 +1042,7 @@ class Redis
     }
 
     /********************* 事务的相关方法 ************************/
-     
+
     /**
      * 监控key,就是一个或多个key添加一个乐观锁
      * 在此期间如果key的值如果发生的改变，刚不能为key设定值
@@ -1058,7 +1054,7 @@ class Redis
     {
         return $this->handler->watch($key);
     }
-     
+
     /**
      * 取消当前链接对所有key的watch
      *  EXEC 命令或 DISCARD 命令先被执行了的话，那么就不需要再执行 UNWATCH 了
@@ -1067,7 +1063,7 @@ class Redis
     {
         return $this->handler->unwatch();
     }
-     
+
     /**
      * 开启一个事务
      * 事务的调用有两种模式Redis::MULTI和Redis::PIPELINE，
@@ -1078,7 +1074,7 @@ class Redis
     {
         return $this->handler->multi($type);
     }
-     
+
     /**
      * 执行一个事务
      * 收到 EXEC 命令后进入事务执行，事务中任意命令执行失败，其余的命令依然被执行
@@ -1087,7 +1083,7 @@ class Redis
     {
         return $this->handler->exec();
     }
-     
+
     /**
      * 回滚一个事务
      */
@@ -1134,7 +1130,7 @@ class Redis
     {
         return $this->handler->ping();
     }
-    
+
     /**
      * 密码认证
      *
@@ -1240,7 +1236,7 @@ class Redis
     {
         return $this->handler->save();
     }
-     
+
     /**
      * 异步保存数据到磁盘
      */
@@ -1248,7 +1244,7 @@ class Redis
     {
         return $this->handler->bgSave();
     }
-     
+
     /**
      * 返回最后保存到磁盘的时间
      */
@@ -1256,7 +1252,7 @@ class Redis
     {
         return $this->handler->lastSave();
     }
-     
+
     /**
      * 返回key,支持*多个字符，?一个字符
      * 只有*　表示全部
@@ -1299,7 +1295,7 @@ class Redis
      */
     public function expire($key, $expire)
     {
-        return $this->handler->expire($key,$expire);
+        return $this->handler->expire($key, $expire);
     }
 
     /**
@@ -1357,7 +1353,7 @@ class Redis
     {
         return $this->handler->pttl($key);
     }
-     
+
     /**
      * 设定一个key什么时候过期，time为一个时间戳
      *
@@ -1366,9 +1362,9 @@ class Redis
      */
     public function exprieAt($key, $time)
     {
-        return $this->handler->expireAt($key,$time);
+        return $this->handler->expireAt($key, $time);
     }
-     
+
     /**
      * 关闭服务器链接
      */
@@ -1384,7 +1380,7 @@ class Redis
     {
         return $this->handler->dbSize();
     }
-     
+
     /**
      * 返回一个随机key
      */
@@ -1445,7 +1441,7 @@ class Redis
      */
     public function object($type, $key)
     {
-        if(!in_array($type, ['encoding', 'refcount', 'idletime'])){
+        if (!in_array($type, ['encoding', 'refcount', 'idletime'])) {
             throw new InvalidArgumentException('object type faild');
         }
         return $this->handler->object($type, $key);
@@ -1454,7 +1450,9 @@ class Redis
     /**
      * 设置REIDS系统配置
      *
-     * @return [type] [description]
+     * @param [type] $key
+     * @param [type] $value
+     * @return void
      */
     public function setConfig($key, $value)
     {
@@ -1466,7 +1464,7 @@ class Redis
      *
      * @return [type] [description]
      */
-    public function setConfig($key)
+    public function getConfig($key)
     {
         return $this->handler->config('GET', $key);
     }
@@ -1526,5 +1524,4 @@ class Redis
     {
         return $this->handler->time();
     }
-
 }

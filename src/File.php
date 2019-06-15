@@ -10,7 +10,7 @@ use InvalidArgumentException;
  * @author Mon <985558837@qq.com>
  * @version  v1.0
  */
-class File  
+class File
 {
     /**
      * 字节格式化 把字节数格式为 B K M G T P E Z Y 描述的大小
@@ -21,14 +21,13 @@ class File
      */
     public function formatByte(int $size, int $dec)
     {
-        $type = array("B", "KB", "MB", "GB", "TB", "PB","EB","ZB","YB");
+        $type = array("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB");
         $pos = 0;
-        while($size >= 1024) 
-        {
+        while ($size >= 1024) {
             $size /= 1024;
             $pos++;
         }
-        return round($size, $dec)." ". $type[$pos];
+        return round($size, $dec) . " " . $type[$pos];
     }
 
     /**
@@ -41,8 +40,7 @@ class File
      */
     public function changeAuth(string $file, string $type, $ch_info)
     {
-        switch ($type)
-        {
+        switch ($type) {
             case 'group':
                 // 改变文件组。
                 return chgrp($file, $ch_info);
@@ -106,15 +104,13 @@ class File
     {
         $dirName = $this->pathReplace($dirPath);
         $handle = @opendir($dirName);
-        while(($file = @readdir($handle)) !== FALSE)
-        {
-            if($file != '.' && $file != '..'){
+        while (($file = @readdir($handle)) !== FALSE) {
+            if ($file != '.' && $file != '..') {
                 $dir = $dirName . '/' . $file;
-                if($all){
+                if ($all) {
                     is_dir($dir) ? $this->removeDir($dir) : $this->removeFile($dir);
-                }
-                else {
-                    if(is_file($dir)){
+                } else {
+                    if (is_file($dir)) {
                         $this->removeFile($dir);
                     }
                 }
@@ -132,26 +128,26 @@ class File
      */
     public function getDirInfo(string $dir)
     {
-        $handle = @opendir($dir);//打开指定目录
+        $handle = @opendir($dir); //打开指定目录
         $directory_count = 0;
-        while(false !== ($path = readdir($handle)))
-        {
-            if($path != "." && $path != ".."){
-                $next_path = $dir.'/'.$path;
-                if(is_dir($next_path)){
+        $total_size = 0;
+        $file_cout = 0;
+        while (false !== ($path = readdir($handle))) {
+            if ($path != "." && $path != "..") {
+                $next_path = $dir . '/' . $path;
+                if (is_dir($next_path)) {
                     $directory_count++;
                     $result_value = $this->getDirInfo($next_path);
                     $total_size += $result_value['size'];
                     $file_cout += $result_value['filecount'];
                     $directory_count += $result_value['dircount'];
-                }
-                elseif(is_file($next_path)){
+                } elseif (is_file($next_path)) {
                     $total_size += filesize($next_path);
                     $file_cout++;
                 }
-            }   
+            }
         }
-        closedir($handle);//关闭指定目录
+        closedir($handle); //关闭指定目录
         $result_value['size'] = $total_size;
         $result_value['filecount'] = $file_cout;
         $result_value['dircount'] = $directory_count;
@@ -182,11 +178,11 @@ class File
         $dirPath = dirname($path);
         is_dir($dirPath) or $this->createDir($dirPath);
         // 添加写入
-        if($append){
+        if ($append) {
             return file_put_contents($path, $content, FILE_APPEND);
         }
         // 重新写入
-        else{
+        else {
             return file_put_contents($path, $content);
         }
     }
@@ -200,7 +196,7 @@ class File
     public function removeFile(string $path)
     {
         $path = $this->pathReplace($path);
-        if(file_exists($path)){
+        if (file_exists($path)) {
             return unlink($path);
         }
     }
@@ -236,7 +232,7 @@ class File
      */
     public function rename(string $oldFileName, string $newFileNmae)
     {
-        if(($oldFileName != $newFileNmae) && is_writable($oldFileName)){
+        if (($oldFileName != $newFileNmae) && is_writable($oldFileName)) {
             return rename($oldFileName, $newFileNmae);
         }
 
@@ -263,26 +259,26 @@ class File
     public function getFileInfo(string $file)
     {
         $info = [];
-        $info['filename']   = basename($file);//返回路径中的文件名部分。
-        $info['pathname']   = realpath($file);//返回绝对路径名。
-        $info['owner']      = fileowner($file);//文件的 user ID （所有者）。
-        $info['perms']      = fileperms($file);//返回文件的 inode 编号。
-        $info['inode']      = fileinode($file);//返回文件的 inode 编号。
-        $info['group']      = filegroup($file);//返回文件的组 ID。
-        $info['path']       = dirname($file);//返回路径中的目录名称部分。
-        $info['atime']      = fileatime($file);//返回文件的上次访问时间。
-        $info['ctime']      = filectime($file);//返回文件的上次改变时间。
-        $info['perms']      = fileperms($file);//返回文件的权限。 
-        $info['size']       = filesize($file);//返回文件大小。
-        $info['type']       = filetype($file);//返回文件类型。
-        $info['ext']        = is_file($file) ? pathinfo($file, PATHINFO_EXTENSION) : '';//返回文件后缀名
-        $info['mtime']      = filemtime($file);//返回文件的上次修改时间。
-        $info['isDir']      = is_dir($file);//判断指定的文件名是否是一个目录。
-        $info['isFile']     = is_file($file);//判断指定文件是否为常规的文件。
-        $info['isLink']     = is_link($file);//判断指定的文件是否是连接。
-        $info['isReadable'] = is_readable($file);//判断文件是否可读。
-        $info['isWritable'] = is_writable($file);//判断文件是否可写。
-        $info['isUpload']   = is_uploaded_file($file);//判断文件是否是通过 HTTP POST 上传的。
+        $info['filename']   = basename($file); //返回路径中的文件名部分。
+        $info['pathname']   = realpath($file); //返回绝对路径名。
+        $info['owner']      = fileowner($file); //文件的 user ID （所有者）。
+        $info['perms']      = fileperms($file); //返回文件的 inode 编号。
+        $info['inode']      = fileinode($file); //返回文件的 inode 编号。
+        $info['group']      = filegroup($file); //返回文件的组 ID。
+        $info['path']       = dirname($file); //返回路径中的目录名称部分。
+        $info['atime']      = fileatime($file); //返回文件的上次访问时间。
+        $info['ctime']      = filectime($file); //返回文件的上次改变时间。
+        $info['perms']      = fileperms($file); //返回文件的权限。 
+        $info['size']       = filesize($file); //返回文件大小。
+        $info['type']       = filetype($file); //返回文件类型。
+        $info['ext']        = is_file($file) ? pathinfo($file, PATHINFO_EXTENSION) : ''; //返回文件后缀名
+        $info['mtime']      = filemtime($file); //返回文件的上次修改时间。
+        $info['isDir']      = is_dir($file); //判断指定的文件名是否是一个目录。
+        $info['isFile']     = is_file($file); //判断指定文件是否为常规的文件。
+        $info['isLink']     = is_link($file); //判断指定的文件是否是连接。
+        $info['isReadable'] = is_readable($file); //判断文件是否可读。
+        $info['isWritable'] = is_writable($file); //判断文件是否可写。
+        $info['isUpload']   = is_uploaded_file($file); //判断文件是否是通过 HTTP POST 上传的。
         return $info;
     }
 
@@ -301,17 +297,17 @@ class File
         $destination = $path . $postfix;
         $contentLength = strlen($content);
         // 判断写入内容的大小
-        if($contentLength > $maxSize){
+        if ($contentLength > $maxSize) {
             throw new RuntimeException("Save content size cannot exceed {$maxSize}, content size: {$contentLength}");
         }
         // 判断记录文件是否已存在，存在时文件大小不足写入
-        elseif(file_exists($destination) && floor($maxSize) < (filesize($destination) + $contentLength)){
+        elseif (file_exists($destination) && floor($maxSize) < (filesize($destination) + $contentLength)) {
             // 超出剩余写入大小，分卷写入
             $this->shiftFile($path, $rollNum, $postfix);
             return $this->createFile($content, $destination, false);
         }
         // 不存在文件或文件大小足够继续写入
-        else{
+        else {
             return $this->createFile($content, $destination);
         }
     }
@@ -329,28 +325,27 @@ class File
         // 判断是否存在最老的一份文件，存在则删除
         $oldest = $this->buildShiftName($path, ($rollNum - 1));
         $oldestFile = $oldest . $postfix;
-        if(!$this->rm($oldestFile)){
+        if (!$this->rm($oldestFile)) {
             throw new RuntimeException("Failed to delete old file, oldFileName: {$oldestFile}");
         }
 
         // 循环重命名文件
-        for($i = ($rollNum - 2); $i >= 0; $i--)
-        {
+        for ($i = ($rollNum - 2); $i >= 0; $i--) {
             // 最新的一卷不需要加上分卷号
-            if($i == 0){
+            if ($i == 0) {
                 $oldFile = $path;
             }
             // 获取分卷号文件名称
-            else{
+            else {
                 $oldFile = $this->buildShiftName($path, $i);
             }
 
             // 重命名文件
             $oldFileName = $oldFile . $postfix;
-            if(file_exists($oldFileName)){
+            if (file_exists($oldFileName)) {
                 $newFileNmae = $this->buildShiftName($path, ($i + 1)) . $postfix;
                 // 重命名
-                if(!$this->rename($oldFile, $newFileNmae)){
+                if (!$this->rename($oldFile, $newFileNmae)) {
                     throw new RuntimeException("Failed to rename volume file name, oldFileName: {$oldFileName}, newFileNmae: {$newFileNmae}");
                 }
             }

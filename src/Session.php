@@ -7,7 +7,6 @@ namespace mon\store;
  * @author Mon <985558837@qq.com>
  * @version v2.0 2017-11-29
  */
-
 class Session
 {
     /**
@@ -47,7 +46,7 @@ class Session
      */
     public function __construct(array $config = [])
     {
-        $this->config = array_merge($this->config, $config);
+        $this->config = array_merge((array)$this->config, $config);
     }
 
     /**
@@ -57,40 +56,39 @@ class Session
      */
     public function register(array $config = [])
     {
-        if(!empty($config)){
-            $this->config = array_merge($this->config, array_change_key_case($config));
+        if (!empty($config)) {
+            $this->config = array_merge((array)$this->config, array_change_key_case($config));
         }
 
         $isDoStart = false;
         // 判断是否在php.ini中开启是否已开启session
-        if(PHP_SESSION_ACTIVE != session_status()){
+        if (PHP_SESSION_ACTIVE != session_status()) {
             // 关闭php.ini的自动开启
             ini_set('session.auto_start', 0);
             $isDoStart = true;
         }
         // 设置session前缀
-        if(isset($this->config['prefix']) && ($this->prefix === '' || $this->prefix === null)){
+        if (isset($this->config['prefix']) && ($this->prefix === '' || $this->prefix === null)) {
             $this->prefix = $this->config['prefix'];
         }
         // 设置session有效期
-        if(isset($this->config['expire']) && !empty($this->config['expire'])){
+        if (isset($this->config['expire']) && !empty($this->config['expire'])) {
             ini_set('session.gc_maxlifetime', $this->config['expire']);
             ini_set('session.cookie_lifetime', $this->config['expire']);
         }
         // session安全传输
-        if(isset($this->config['secure']) && !empty($this->config['secure'])){
+        if (isset($this->config['secure']) && !empty($this->config['secure'])) {
             ini_set('session.cookie_secure', $this->config['secure']);
         }
         // httponly设置
-        if(isset($this->config['httponly']) && !empty($this->config['httponly'])){
+        if (isset($this->config['httponly']) && !empty($this->config['httponly'])) {
             ini_set('session.cookie_httponly', $this->config['httponly']);
         }
         // 初始化
-        if($isDoStart){
+        if ($isDoStart) {
             session_start();
             $this->init = true;
-        }
-        else{
+        } else {
             $this->init = false;
         }
     }
@@ -102,11 +100,10 @@ class Session
      */
     public function bootstrap()
     {
-        if (is_null($this->init)){
+        if (is_null($this->init)) {
             $this->register();
-        }
-        elseif(false === $this->init){
-            if(PHP_SESSION_ACTIVE != session_status()){
+        } elseif (false === $this->init) {
+            if (PHP_SESSION_ACTIVE != session_status()) {
                 session_start();
             }
             $this->init = true;
@@ -116,15 +113,14 @@ class Session
     /**
      * 设置或者获取session前缀
      *
-     * @param  string $prefix [description]
+     * @param  string $prefix 前缀
      * @return [type]         [description]
      */
     public function prefix(string $prefix = '')
     {
-        if(empty($prefix) && !is_null($prefix)){
+        if (empty($prefix) && !is_null($prefix)) {
             return $this->prefix;
-        }
-        else{
+        } else {
             $this->prefix = $prefix;
         }
     }
@@ -132,30 +128,27 @@ class Session
     /**
      * 设置session
      *
-     * @param [type] $key    [description]
-     * @param string $value  [description]
-     * @param string $prefix [description]
+     * @param [type] $key    键名
+     * @param string $value  键值
+     * @param string $prefix 前缀
      */
     public function set(string $key, $value = '', $prefix = null)
     {
         empty($this->init) && $this->bootstrap();
         $prefix = !is_null($prefix) ? $prefix : $this->prefix;
-        if(strpos($key, '.')){
+        if (strpos($key, '.')) {
             // 二维数组赋值
             list($name1, $name2) = explode('.', $key);
-            if(empty($prefix)){
+            if (empty($prefix)) {
                 $_SESSION[$name1][$name2] = $value;
-            }
-            else{
+            } else {
                 // 前缀封装
                 $_SESSION[$prefix][$name1][$name2] = $value;
             }
-        }
-        else{
-            if(empty($prefix)){
+        } else {
+            if (empty($prefix)) {
                 $_SESSION[$key] = $value;
-            }
-            else{
+            } else {
                 $_SESSION[$prefix][$key] = $value;
             }
         }
@@ -164,8 +157,8 @@ class Session
     /**
      * 判断session是否存在
      *
-     * @param  [type]  $key    [description]
-     * @param  [type]  $prefix [description]
+     * @param  string  $key    键名
+     * @param  [type]  $prefix 前缀
      * @return boolean         [description]
      */
     public function has(string $key, $prefix = null)
@@ -173,69 +166,66 @@ class Session
         empty($this->init) && $this->bootstrap();
         $prefix = !is_null($prefix) ? $prefix : $this->prefix;
 
-        if(strpos($key, '.')){
+        if (strpos($key, '.')) {
             // 二维数组赋值
             list($name1, $name2) = explode('.', $key);
-            if(empty($prefix)){
-                return isset( $_SESSION[$name1][$name2] );
-            }
-            else{
+            if (empty($prefix)) {
+                return isset($_SESSION[$name1][$name2]);
+            } else {
                 // 前缀封装
-                return isset( $_SESSION[$prefix][$name1][$name2] );
+                return isset($_SESSION[$prefix][$name1][$name2]);
             }
-        }
-        else{
-            if(empty($prefix)){
-                return isset( $_SESSION[$key] );
-            }
-            else{
-                return isset( $_SESSION[$prefix][$key] );
+        } else {
+            if (empty($prefix)) {
+                return isset($_SESSION[$key]);
+            } else {
+                return isset($_SESSION[$prefix][$key]);
             }
         }
     }
 
     /**
-     * 获取session
+     * 获取session值
      *
-     * @param  [type] $key    [description]
-     * @param  string $prefix [description]
-     * @return [type]         [description]
+     * @param string $key       键名
+     * @param [type] $default   默认值
+     * @param [type] $prefix    前缀
+     * @return void
      */
     public function get(string $key, $default = null, $prefix = null)
     {
         empty($this->init) && $this->bootstrap();
         $prefix = !is_null($prefix) ? $prefix : $this->prefix;
-        if(strpos($key, '.')){
+        if (strpos($key, '.')) {
             // 二维数组赋值
             list($name1, $name2) = explode('.', $key);
-            if(empty($prefix)){
-                return isset( $_SESSION[$name1][$name2] ) ? $_SESSION[$name1][$name2] : $default;
+            if (empty($prefix)) {
+                return isset($_SESSION[$name1][$name2]) ? $_SESSION[$name1][$name2] : $default;
             }
-            return isset( $_SESSION[$prefix][$name1][$name2] ) ? $_SESSION[$prefix][$name1][$name2] : $default;
-        }
-        else{
-            if(empty($prefix)){
-                return isset( $_SESSION[$key] ) ? $_SESSION[$key] : $default;
+            return isset($_SESSION[$prefix][$name1][$name2]) ? $_SESSION[$prefix][$name1][$name2] : $default;
+        } else {
+            if (empty($prefix)) {
+                return isset($_SESSION[$key]) ? $_SESSION[$key] : $default;
             }
-            return isset( $_SESSION[$prefix][$key] ) ? $_SESSION[$prefix][$key] : $default;
+            return isset($_SESSION[$prefix][$key]) ? $_SESSION[$prefix][$key] : $default;
         }
     }
 
     /**
      * 清空所有session
      *
-     * @return [type] [description]
+     * @param [type] $prefix    前缀
+     * @return void
      */
     public function clear($prefix = null)
     {
         empty($this->init) && $this->bootstrap();
         $prefix = !is_null($prefix) ? $prefix : $this->prefix;
 
-        if(empty($prefix)){
+        if (empty($prefix)) {
             $_SESSION = null;
             unset($_SESSION);
-        }
-        else{
+        } else {
             $_SESSION[$prefix] = null;
             unset($_SESSION[$prefix]);
         }
@@ -244,33 +234,30 @@ class Session
     /**
      * 删除某个session
      *
-     * @param  [type] $key    [description]
-     * @param  [type] $prefix [description]
+     * @param  [type] $key    键名
+     * @param  [type] $prefix 前缀
      * @return [type]         [description]
      */
     public function del(string $key, $prefix = null)
     {
         empty($this->init) && $this->bootstrap();
         $prefix = !is_null($prefix) ? $prefix : $this->prefix;
-        if(strpos($key, '.')){
+        if (strpos($key, '.')) {
             // 二维数组赋值
             list($name1, $name2) = explode('.', $key);
 
-            if(empty($prefix)){
+            if (empty($prefix)) {
                 $_SESSION[$name1][$name2] = null;
                 unset($_SESSION[$name1][$name2]);
-            }
-            else{
+            } else {
                 $_SESSION[$prefix][$name1][$name2] = null;
                 unset($_SESSION[$prefix][$name1][$name2]);
             }
-        }
-        else{
-            if(empty($prefix)){
+        } else {
+            if (empty($prefix)) {
                 $_SESSION[$key] = null;
                 unset($_SESSION[$key]);
-            }
-            else{
+            } else {
                 $_SESSION[$prefix][$key] = null;
                 unset($_SESSION[$prefix][$key]);
             }
@@ -278,8 +265,7 @@ class Session
     }
 
     /**
-     * 重启session
-     * 注意: 会重新生成session_id
+     * 重启session，会重新生成session_id
      *
      * @return [type] [description]
      */
@@ -296,7 +282,7 @@ class Session
      */
     public function destroy()
     {
-        if(!empty($_SESSION)){
+        if (!empty($_SESSION)) {
             $_SESSION = [];
         }
         session_unset();
@@ -335,5 +321,4 @@ class Session
         session_write_close();
         $this->init = false;
     }
-
 }
