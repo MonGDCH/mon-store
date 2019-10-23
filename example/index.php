@@ -18,6 +18,6 @@ require __DIR__ . '/../vendor/autoload.php';
 
 $cache = new \mon\store\Cache(['path' => __DIR__]);
 
-// $c = $cache->set('aa', '123456');
+$c = $cache->set('aa', '123456');
 $c = $cache->get('aa');
 var_dump($c);

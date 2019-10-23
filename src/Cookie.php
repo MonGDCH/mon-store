@@ -1,4 +1,5 @@
 <?php
+
 namespace mon\store;
 
 /**
@@ -45,7 +46,7 @@ class Cookie
      */
     public function __construct(array $config = [])
     {
-        $this->config = array_merge((array)$this->config, $config);
+        $this->config = array_merge((array) $this->config, $config);
     }
 
     /**
@@ -57,7 +58,7 @@ class Cookie
     public function register(array $config = [])
     {
         if (!empty($config)) {
-            $this->config = array_merge((array)$this->config, array_change_key_case($config));
+            $this->config = array_merge((array) $this->config, array_change_key_case($config));
         }
         if (!empty($this->config['httponly'])) {
             ini_set('session.cookie_httponly', 1);
@@ -88,12 +89,12 @@ class Cookie
      * @param mixed  $value  值, 可以是字符串，也可以是数组
      * @param array  $option 重新定义的配置，必须为数组
      */
-    public function set(string $key, $value = '', array $option = [])
+    public function set($key, $value = '', array $option = [])
     {
         !isset($this->init) && $this->register();
         // 参数设置(会覆盖黙认设置)
         if (!empty($option)) {
-            $config = array_merge((array)$this->config, array_change_key_case($option));
+            $config = array_merge((array) $this->config, array_change_key_case($option));
         } else {
             $config = $this->config;
         }
@@ -118,7 +119,7 @@ class Cookie
      * @param array  $option 可选参数 可能会是 null|integer|string
      * @return void
      */
-    public function forever(string $name, $value = '', array $option = [])
+    public function forever($name, $value = '', array $option = [])
     {
         if (is_null($option) || !is_array($option)) {
             $option = [];
@@ -134,7 +135,7 @@ class Cookie
      * @param string|null   $prefix cookie前缀
      * @return bool
      */
-    public function has(string $name, $prefix = null)
+    public function has($name, $prefix = null)
     {
         !isset($this->init) && $this->register();
 
@@ -151,7 +152,7 @@ class Cookie
      * @param  mixed  $prefix  前缀
      * @return [type]          [description]
      */
-    public function get(string $key = '', $default = null, $prefix = null)
+    public function get($key = '', $default = null, $prefix = null)
     {
         !isset($this->init) && $this->register();
 
@@ -191,7 +192,7 @@ class Cookie
      * @param  mixed  $prefix 前缀
      * @return [type]         [description]
      */
-    public function del(string $key, $prefix = null)
+    public function del($key, $prefix = null)
     {
         !isset($this->init) && $this->register();
         $config = $this->config;

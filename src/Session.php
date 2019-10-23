@@ -1,4 +1,5 @@
 <?php
+
 namespace mon\store;
 
 /**
@@ -46,7 +47,7 @@ class Session
      */
     public function __construct(array $config = [])
     {
-        $this->config = array_merge((array)$this->config, $config);
+        $this->config = array_merge((array) $this->config, $config);
     }
 
     /**
@@ -57,7 +58,7 @@ class Session
     public function register(array $config = [])
     {
         if (!empty($config)) {
-            $this->config = array_merge((array)$this->config, array_change_key_case($config));
+            $this->config = array_merge((array) $this->config, array_change_key_case($config));
         }
 
         $isDoStart = false;
@@ -116,7 +117,7 @@ class Session
      * @param  string $prefix 前缀
      * @return [type]         [description]
      */
-    public function prefix(string $prefix = '')
+    public function prefix($prefix = '')
     {
         if (empty($prefix) && !is_null($prefix)) {
             return $this->prefix;
@@ -128,11 +129,11 @@ class Session
     /**
      * 设置session
      *
-     * @param [type] $key    键名
+     * @param string $key    键名
      * @param string $value  键值
      * @param string $prefix 前缀
      */
-    public function set(string $key, $value = '', $prefix = null)
+    public function set($key, $value = '', $prefix = null)
     {
         empty($this->init) && $this->bootstrap();
         $prefix = !is_null($prefix) ? $prefix : $this->prefix;
@@ -161,7 +162,7 @@ class Session
      * @param  [type]  $prefix 前缀
      * @return boolean         [description]
      */
-    public function has(string $key, $prefix = null)
+    public function has($key, $prefix = null)
     {
         empty($this->init) && $this->bootstrap();
         $prefix = !is_null($prefix) ? $prefix : $this->prefix;
@@ -192,7 +193,7 @@ class Session
      * @param [type] $prefix    前缀
      * @return void
      */
-    public function get(string $key, $default = null, $prefix = null)
+    public function get($key, $default = null, $prefix = null)
     {
         empty($this->init) && $this->bootstrap();
         $prefix = !is_null($prefix) ? $prefix : $this->prefix;
@@ -238,7 +239,7 @@ class Session
      * @param  [type] $prefix 前缀
      * @return [type]         [description]
      */
-    public function del(string $key, $prefix = null)
+    public function del($key, $prefix = null)
     {
         empty($this->init) && $this->bootstrap();
         $prefix = !is_null($prefix) ? $prefix : $this->prefix;

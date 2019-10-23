@@ -1,4 +1,5 @@
 <?php
+
 namespace mon\store;
 
 use RuntimeException;
@@ -19,7 +20,7 @@ class File
      * @param int $dec 精准度，小数位数
      * @return int
      */
-    public function formatByte(int $size, int $dec)
+    public function formatByte($size, $dec)
     {
         $type = array("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB");
         $pos = 0;
@@ -38,7 +39,7 @@ class File
      * @param mixed  $ch_info 操作信息
      * @return boolean
      */
-    public function changeAuth(string $file, string $type, $ch_info)
+    public function changeAuth($file, $type, $ch_info)
     {
         switch ($type) {
             case 'group':
@@ -61,7 +62,7 @@ class File
      * @param  string $field $_FILES 字段索引
      * @return [type]        [description]
      */
-    public function uploadFileInfo(string $field)
+    public function uploadFileInfo($field)
     {
         // 取得上传文件基本信息
         $fileInfo = $_FILES[$field];
@@ -87,7 +88,7 @@ class File
      * @param  string $dirPath 目录路径
      * @return [type]          [description]
      */
-    public function createDir(string $dirPath)
+    public function createDir($dirPath)
     {
         return !is_dir($dirPath) && mkdir($dirPath, 0755, true);
     }
@@ -100,7 +101,7 @@ class File
      * @param  boolean $all     是否删除所有
      * @return [type]           [description]
      */
-    public function removeDir(string $dirPath, $all = false)
+    public function removeDir($dirPath, $all = false)
     {
         $dirName = $this->pathReplace($dirPath);
         $handle = @opendir($dirName);
@@ -126,7 +127,7 @@ class File
      * @param  string $dir  目录路径
      * @return [type]       [description]
      */
-    public function getDirInfo(string $dir)
+    public function getDirInfo($dir)
     {
         $handle = @opendir($dir); //打开指定目录
         $directory_count = 0;
@@ -160,7 +161,7 @@ class File
      * @param  string] $dir 目录路径
      * @return [type]       [description]
      */
-    public function getDirContent(string $dir)
+    public function getDirContent($dir)
     {
         return scandir($dir);
     }
@@ -173,7 +174,7 @@ class File
      * @param  boolean $append  存在文件是否继续写入
      * @return [type]           [description]
      */
-    public function createFile(string $content, string $path, bool $append = true)
+    public function createFile($content, $path, $append = true)
     {
         $dirPath = dirname($path);
         is_dir($dirPath) or $this->createDir($dirPath);
@@ -193,7 +194,7 @@ class File
      * @param  string $path 文件路径
      * @return [type]       [description]
      */
-    public function removeFile(string $path)
+    public function removeFile($path)
     {
         $path = $this->pathReplace($path);
         if (file_exists($path)) {
@@ -207,7 +208,7 @@ class File
      * @param  string $path 目录路径
      * @return [type]       [description]
      */
-    public function getBaseName(string $path)
+    public function getBaseName($path)
     {
         return basename(str_replace('\\', '/', $this->pathReplace($path)));
     }
@@ -218,7 +219,7 @@ class File
      * @param  string $path 文件路径
      * @return [type]       [description]
      */
-    public function getExt(string $path)
+    public function getExt($path)
     {
         return pathinfo($this->pathReplace($path), PATHINFO_EXTENSION);
     }
@@ -230,7 +231,7 @@ class File
      * @param  string $newFileNmae 新名称
      * @return [type]              [description]
      */
-    public function rename(string $oldFileName, string $newFileNmae)
+    public function rename($oldFileName, $newFileNmae)
     {
         if (($oldFileName != $newFileNmae) && is_writable($oldFileName)) {
             return rename($oldFileName, $newFileNmae);
@@ -245,7 +246,7 @@ class File
      * @param  string $file 文件路径
      * @return [type]       [description]
      */
-    public function read(string $file)
+    public function read($file)
     {
         return file_get_contents($file);
     }
@@ -256,7 +257,7 @@ class File
      * @param  string $file 文件路径
      * @return [type]       [description]
      */
-    public function getFileInfo(string $file)
+    public function getFileInfo($file)
     {
         $info = [];
         $info['filename']   = basename($file); //返回路径中的文件名部分。
@@ -292,7 +293,7 @@ class File
      * @param  string  $postfix 文件后缀
      * @return [type]           [description]
      */
-    public function subsectionFile(string $content, string $path, int $maxSize = 20480000, int $rollNum = 3, string $postfix = '.log')
+    public function subsectionFile($content, $path, $maxSize = 20480000, $rollNum = 3, $postfix = '.log')
     {
         $destination = $path . $postfix;
         $contentLength = strlen($content);
@@ -303,7 +304,7 @@ class File
         // 判断记录文件是否已存在，存在时文件大小不足写入
         elseif (file_exists($destination) && floor($maxSize) < (filesize($destination) + $contentLength)) {
             // 超出剩余写入大小，分卷写入
-            $this->shiftFile($path, $rollNum, $postfix);
+            $this->shiftFile($path, (int) $rollNum, $postfix);
             return $this->createFile($content, $destination, false);
         }
         // 不存在文件或文件大小足够继续写入
@@ -320,7 +321,7 @@ class File
      * @param  string $postfix 后缀名
      * @return [type]          [description]
      */
-    protected function shiftFile(string $path, int $rollNum, string $postfix = '.log')
+    protected function shiftFile($path, $rollNum, $postfix = '.log')
     {
         // 判断是否存在最老的一份文件，存在则删除
         $oldest = $this->buildShiftName($path, ($rollNum - 1));
@@ -359,7 +360,7 @@ class File
      * @param  int    $num      分卷数
      * @return [type]           [description]
      */
-    protected function buildShiftName(string $fileName, int $num)
+    protected function buildShiftName($fileName, $num)
     {
         return $fileName . '_' . $num;
     }
@@ -370,7 +371,7 @@ class File
      * @param string $path 路径
      * @return string
      */
-    protected function pathReplace(string $path)
+    protected function pathReplace($path)
     {
         return str_replace('//', '/', str_replace('\\', '/', $path));
     }

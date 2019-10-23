@@ -1,4 +1,5 @@
 <?php
+
 namespace mon\store;
 
 use Redis;
@@ -1066,7 +1067,7 @@ class Rdb
         return $this->handler->unwatch();
     }
 
-    
+
     /**
      * 开启一个事务
      * 事务的调用有两种模式Redis::MULTI和Redis::PIPELINE，
@@ -1285,10 +1286,10 @@ class Rdb
     /**
      * 发送一个字符串到Redis,返回一个相同的字符串
      *
-     * @param  [type] $string 字符串
+     * @param  string $string 字符串
      * @return [type]         [description]
      */
-    public function echo($string)
+    public function out($string)
     {
         return $this->handler->echo($string);
     }
@@ -1479,10 +1480,10 @@ class Rdb
     /**
      * 在服务器端执行LUA脚本
      *
-     * @param  [type] $script LUA脚本
+     * @param  [type] $script Lua脚本
      * @return [type]         [description]
      */
-    public function eval($script)
+    public function run($script)
     {
         return $this->handler->eval($script);
     }

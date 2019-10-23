@@ -1,4 +1,5 @@
 <?php
+
 namespace mon\store;
 
 use mon\store\File;
@@ -51,7 +52,7 @@ class Cache
             throw new InvalidArgumentException("config required path");
         }
         // 定义配置
-        $this->config = array_merge((array)$this->config, $config);
+        $this->config = array_merge((array) $this->config, $config);
         if (substr($this->config['path'], -1) != DIRECTORY_SEPARATOR) {
             $this->config['path'] .= DIRECTORY_SEPARATOR;
         }
@@ -80,7 +81,7 @@ class Cache
      * @param  string $key 名称
      * @return [type]      [description]
      */
-    protected function getCacheKey(string $name)
+    protected function getCacheKey($name)
     {
         $name = md5($name);
         if ($this->config['cache_subdir']) {
@@ -106,7 +107,7 @@ class Cache
      * @param  mixed  $default 默认值
      * @return [type]          [description]
      */
-    public function get(string $name, $default = false)
+    public function get($name, $default = false)
     {
         $filename = $this->getCacheKey($name);
         if (!is_file($filename)) {
@@ -114,7 +115,7 @@ class Cache
         }
         $content = $this->drive->read($filename);
         if (false !== $content) {
-            $expire = (int)substr($content, 8, 12);
+            $expire = (int) substr($content, 8, 12);
             if (0 != $expire && $_SERVER['REQUEST_TIME'] > filemtime($filename) + $expire) {
                 //缓存过期删除缓存文件
                 $this->drive->removeFile($filename);
@@ -141,7 +142,7 @@ class Cache
      * @param int       $expire  有效时间 0为永久
      * @return boolean
      */
-    public function set(string $name, $value, $expire = null)
+    public function set($name, $value, $expire = null)
     {
         if (is_null($expire)) {
             $expire = $this->config['expire'];
@@ -158,7 +159,7 @@ class Cache
         $data   = "<?php\n//" . sprintf('%012d', $expire) . $data . "\n?>";
         $result = $this->drive->createFile($data, $filename, false);
         if ($result) {
-            isset($first) && $this->setTagItem((string)$filename);
+            isset($first) && $this->setTagItem((string) $filename);
             clearstatcache();
             return true;
         } else {
@@ -172,7 +173,7 @@ class Cache
      * @param  string  $name 名称
      * @return boolean       [description]
      */
-    public function has(string $name)
+    public function has($name)
     {
         return $this->get($name) ? true : false;
     }
@@ -183,7 +184,7 @@ class Cache
      * @param string $name 缓存变量名
      * @return boolean
      */
-    public function remove(string $name)
+    public function remove($name)
     {
         return $this->drive->removeFile($this->getCacheKey($name));
     }
@@ -195,7 +196,7 @@ class Cache
      */
     public function clear()
     {
-        $files = (array)glob($this->config['path'] . ($this->config['prefix'] ? $this->config['prefix'] . DIRECTORY_SEPARATOR : '') . '*');
+        $files = (array) glob($this->config['path'] . ($this->config['prefix'] ? $this->config['prefix'] . DIRECTORY_SEPARATOR : '') . '*');
         foreach ($files as $path) {
             if (is_dir($path)) {
                 array_map('unlink', glob($path . '/*.php'));
@@ -215,7 +216,7 @@ class Cache
      * @param bool          $overlay 是否覆盖
      * @return $this
      */
-    public function tag(string $name, $keys = null, bool $overlay = false)
+    public function tag($name, $keys = null, $overlay = false)
     {
         if (empty($name)) {
             throw new InvalidArgumentException("required tag name");
@@ -243,7 +244,7 @@ class Cache
      * @param string $name 缓存标识
      * @return void
      */
-    protected function setTagItem(string $name)
+    protected function setTagItem($name)
     {
         if ($this->tag) {
             $key = 'tag_' . md5($this->tag);
@@ -265,7 +266,7 @@ class Cache
      * @param string $tag 缓存标签
      * @return array
      */
-    protected function getTagItem(string $tag)
+    protected function getTagItem($tag)
     {
         $key   = 'tag_' . md5($tag);
         $value = $this->get($key);
