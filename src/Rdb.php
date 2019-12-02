@@ -11,6 +11,7 @@ use InvalidArgumentException;
  *
  * @author Mon <985558837@qq.com>
  * @version 1.0 2018-05-20
+ * @version 1.1 2019-12-02 修复自定义Redis配置无效的BUG
  */
 class Rdb
 {
@@ -42,7 +43,7 @@ class Rdb
         if (!extension_loaded('redis')) {
             throw new BadFunctionCallException('not support: redis');
         }
-        if (empty($config)) {
+        if (!empty($config)) {
             $this->config = array_merge($this->config, $config);
         }
 

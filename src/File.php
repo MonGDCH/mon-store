@@ -9,7 +9,8 @@ use InvalidArgumentException;
  * 文章操作类
  *
  * @author Mon <985558837@qq.com>
- * @version  v1.0
+ * @version 1.0
+ * @version 1.1 优化代码
  */
 class File
 {
@@ -260,26 +261,46 @@ class File
     public function getFileInfo($file)
     {
         $info = [];
-        $info['filename']   = basename($file); //返回路径中的文件名部分。
-        $info['pathname']   = realpath($file); //返回绝对路径名。
-        $info['owner']      = fileowner($file); //文件的 user ID （所有者）。
-        $info['perms']      = fileperms($file); //返回文件的 inode 编号。
-        $info['inode']      = fileinode($file); //返回文件的 inode 编号。
-        $info['group']      = filegroup($file); //返回文件的组 ID。
-        $info['path']       = dirname($file); //返回路径中的目录名称部分。
-        $info['atime']      = fileatime($file); //返回文件的上次访问时间。
-        $info['ctime']      = filectime($file); //返回文件的上次改变时间。
-        $info['perms']      = fileperms($file); //返回文件的权限。 
-        $info['size']       = filesize($file); //返回文件大小。
-        $info['type']       = filetype($file); //返回文件类型。
-        $info['ext']        = is_file($file) ? pathinfo($file, PATHINFO_EXTENSION) : ''; //返回文件后缀名
-        $info['mtime']      = filemtime($file); //返回文件的上次修改时间。
-        $info['isDir']      = is_dir($file); //判断指定的文件名是否是一个目录。
-        $info['isFile']     = is_file($file); //判断指定文件是否为常规的文件。
-        $info['isLink']     = is_link($file); //判断指定的文件是否是连接。
-        $info['isReadable'] = is_readable($file); //判断文件是否可读。
-        $info['isWritable'] = is_writable($file); //判断文件是否可写。
-        $info['isUpload']   = is_uploaded_file($file); //判断文件是否是通过 HTTP POST 上传的。
+        // 返回路径中的文件名部分
+        $info['filename']   = basename($file);
+        // 返回绝对路径名
+        $info['pathname']   = realpath($file);
+        // 文件的 user ID （所有者）
+        $info['owner']      = fileowner($file);
+        // 返回文件的 inode 编号
+        $info['perms']      = fileperms($file);
+        // 返回文件的 inode 编号 
+        $info['inode']      = fileinode($file);
+        // 返回文件的组 ID
+        $info['group']      = filegroup($file);
+        // 返回路径中的目录名称部分
+        $info['path']       = dirname($file);
+        // 返回文件的上次访问时间
+        $info['atime']      = fileatime($file);
+        // 返回文件的上次改变时间
+        $info['ctime']      = filectime($file);
+        // 返回文件的权限 
+        $info['perms']      = fileperms($file);
+        // 返回文件大小
+        $info['size']       = filesize($file);
+        // 返回文件类型
+        $info['type']       = filetype($file);
+        // 返回文件后缀名
+        $info['ext']        = is_file($file) ? pathinfo($file, PATHINFO_EXTENSION) : '';
+        // 返回文件的上次修改时间
+        $info['mtime']      = filemtime($file);
+        // 判断指定的文件名是否是一个目录
+        $info['isDir']      = is_dir($file);
+        // 判断指定文件是否为常规的文件
+        $info['isFile']     = is_file($file);
+        // 判断指定的文件是否是连接
+        $info['isLink']     = is_link($file);
+        // 判断文件是否可读
+        $info['isReadable'] = is_readable($file);
+        // 判断文件是否可写
+        $info['isWritable'] = is_writable($file);
+        // 判断文件是否是通过 HTTP POST 上传的
+        $info['isUpload']   = is_uploaded_file($file);
         return $info;
     }
 

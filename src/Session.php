@@ -7,6 +7,7 @@ namespace mon\store;
  *
  * @author Mon <985558837@qq.com>
  * @version v2.0 2017-11-29
+ * @version v2.1 2019-12-02 优化代码，修复clear方法清除不干净的问题
  */
 class Session
 {
@@ -51,9 +52,10 @@ class Session
     }
 
     /**
-     * 注册初始化session
+     * 注册初始化session配置
      *
-     * @return [type] [description]
+     * @param array $config 配置信息
+     * @return void
      */
     public function register(array $config = [])
     {
@@ -127,7 +129,7 @@ class Session
     }
 
     /**
-     * 设置session
+     * 设置session, 支持.二级设置
      *
      * @param string $key    键名
      * @param string $value  键值
@@ -156,59 +158,56 @@ class Session
     }
 
     /**
-     * 判断session是否存在
+     * 判断session是否存在，支持.无限级判断
      *
      * @param  string  $key    键名
-     * @param  [type]  $prefix 前缀
+     * @param  string  $prefix 前缀
      * @return boolean         [description]
      */
     public function has($key, $prefix = null)
     {
         empty($this->init) && $this->bootstrap();
         $prefix = !is_null($prefix) ? $prefix : $this->prefix;
+        $keys = explode('.', $key);
+        $value  = $prefix ? (!empty($_SESSION[$prefix]) ? $_SESSION[$prefix] : []) : $_SESSION;
 
-        if (strpos($key, '.')) {
-            // 二维数组赋值
-            list($name1, $name2) = explode('.', $key);
-            if (empty($prefix)) {
-                return isset($_SESSION[$name1][$name2]);
+        foreach ($keys as $val) {
+            if (!isset($value[$val])) {
+                return false;
             } else {
-                // 前缀封装
-                return isset($_SESSION[$prefix][$name1][$name2]);
-            }
-        } else {
-            if (empty($prefix)) {
-                return isset($_SESSION[$key]);
-            } else {
-                return isset($_SESSION[$prefix][$key]);
+                $value = $value[$val];
             }
         }
+
+        return true;
     }
 
     /**
-     * 获取session值
+     * 获取session值，支持.无限级获取值
      *
      * @param string $key       键名
      * @param [type] $default   默认值
-     * @param [type] $prefix    前缀
+     * @param string $prefix    前缀
      * @return void
      */
-    public function get($key, $default = null, $prefix = null)
+    public function get($key = '', $default = null, $prefix = null)
     {
         empty($this->init) && $this->bootstrap();
         $prefix = !is_null($prefix) ? $prefix : $this->prefix;
-        if (strpos($key, '.')) {
-            // 二维数组赋值
-            list($name1, $name2) = explode('.', $key);
-            if (empty($prefix)) {
-                return isset($_SESSION[$name1][$name2]) ? $_SESSION[$name1][$name2] : $default;
-            }
-            return isset($_SESSION[$prefix][$name1][$name2]) ? $_SESSION[$prefix][$name1][$name2] : $default;
+        if ($key == '') {
+            return empty($prefix) ? $_SESSION : (!empty($_SESSION[$prefix]) ? $_SESSION[$prefix] : []);
         } else {
-            if (empty($prefix)) {
-                return isset($_SESSION[$key]) ? $_SESSION[$key] : $default;
+            $keys = explode('.', $key);
+            $value = $prefix ? (!empty($_SESSION[$prefix]) ? $_SESSION[$prefix] : []) : $_SESSION;
+            foreach ($keys as $val) {
+                if (isset($value[$val])) {
+                    $value = $value[$val];
+                } else {
+                    $value = $default;
+                    break;
+                }
             }
-            return isset($_SESSION[$prefix][$key]) ? $_SESSION[$prefix][$key] : $default;
+            return $value;
         }
     }
 
@@ -224,26 +223,28 @@ class Session
         $prefix = !is_null($prefix) ? $prefix : $this->prefix;
 
         if (empty($prefix)) {
-            $_SESSION = null;
-            unset($_SESSION);
+            $_SESSION = [];
         } else {
-            $_SESSION[$prefix] = null;
             unset($_SESSION[$prefix]);
         }
     }
 
     /**
-     * 删除某个session
+     * 删除session，支持数组批量删除，支持.二级删除
      *
-     * @param  [type] $key    键名
-     * @param  [type] $prefix 前缀
-     * @return [type]         [description]
+     * @param  string|array $key 键名
+     * @param  string $prefix 前缀
+     * @return [type] [description]
      */
     public function del($key, $prefix = null)
     {
         empty($this->init) && $this->bootstrap();
         $prefix = !is_null($prefix) ? $prefix : $this->prefix;
-        if (strpos($key, '.')) {
+        if (is_array($key)) {
+            foreach ($key as $name) {
+                $this->del($name, $prefix);
+            }
+        } elseif (strpos($key, '.')) {
             // 二维数组赋值
             list($name1, $name2) = explode('.', $key);
 

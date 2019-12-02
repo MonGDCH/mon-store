@@ -8,6 +8,11 @@ composer require mongdch/store
 ```
 ## 版本
 
+# v1.0.3
+
+* 优化代码，加强session类
+* 修复Redis类自定义链接配置无效的问题
+
 # v1.0.2
 
 * 优化代码结构
