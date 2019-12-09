@@ -3,6 +3,7 @@
 namespace mon\store;
 
 use RuntimeException;
+use DirectoryIterator;
 use InvalidArgumentException;
 
 /**
@@ -21,7 +22,7 @@ class File
      * @param int $dec 精准度，小数位数
      * @return int
      */
-    public function formatByte($size, $dec)
+    public function formatByte($size, $dec = 0)
     {
         $type = array("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB");
         $pos = 0;
@@ -335,6 +336,79 @@ class File
     }
 
     /**
+     * 获取路径下所有的内容及后代内容
+     *
+     * @param [type] $path  路径
+     * @param boolean $tree 输出树结构还是数组
+     * @return void
+     */
+    public function getFoldersContent($path, $tree = false)
+    {
+        if ((!file_exists($path) || !is_dir($path))) {
+            return [];
+        }
+        $dir = new DirectoryIterator($path);
+
+        return $tree ? $this->directoryIteratorToTree($dir) : $this->directoryIteratorToArray($dir);
+    }
+
+    /**
+     * 获取路径下所有的内容及后代内容转数组辅助方法
+     *
+     * @param DirectoryIterator $dir
+     * @return void
+     */
+    protected function directoryIteratorToArray(DirectoryIterator $dir)
+    {
+        $result = [];
+        foreach ($dir as $key => $child) {
+            if ($child->isDot()) {
+                continue;
+            }
+            $name = $child->getBasename();
+            if ($child->isDir()) {
+                $subit = new DirectoryIterator($child->getPathname());
+                $result[$name] = $this->DirectoryIteratorToArray($subit);
+            } else {
+                $result[] = $name;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * 获取路径下所有的内容及后代内容转树结构辅助方法
+     *
+     * @param DirectoryIterator $dir
+     * @return void
+     */
+    protected function directoryIteratorToTree(DirectoryIterator $dir)
+    {
+        $result = [];
+        foreach ($dir as $key => $child) {
+            if ($child->isDot()) {
+                continue;
+            }
+            $name = $child->getBasename();
+            if ($child->isDir()) {
+                $path = $child->getPathname();
+                $subit = new DirectoryIterator($path);
+                $result[$key] = [
+                    'children'  => $this->directoryIteratorToTree($subit),
+                    'title'     => $name,
+                    'path'      => $path,
+                ];
+            } else {
+                $result[$key] = [
+                    'title'     => $name,
+                    'path'      => $child->getPathname(),
+                ];
+            }
+        }
+        return $result;
+    }
+
+    /**
      * 分卷重命名文件
      *
      * @param  string $path    文件路径
@@ -347,7 +421,7 @@ class File
         // 判断是否存在最老的一份文件，存在则删除
         $oldest = $this->buildShiftName($path, ($rollNum - 1));
         $oldestFile = $oldest . $postfix;
-        if (!$this->rm($oldestFile)) {
+        if (!$this->removeFile($oldestFile)) {
             throw new RuntimeException("Failed to delete old file, oldFileName: {$oldestFile}");
         }
 

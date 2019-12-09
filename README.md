@@ -8,6 +8,10 @@ composer require mongdch/store
 ```
 ## 版本
 
+# v1.0.4
+
+* 优化代码，加强file类
+
 # v1.0.3
 
 * 优化代码，加强session类
