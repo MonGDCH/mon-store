@@ -2,12 +2,15 @@
 
 namespace mon\store;
 
+use Pimple\Container;
+
 /**
  * Session辅助类
  *
  * @author Mon <985558837@qq.com>
  * @version v2.0 2017-11-29
  * @version v2.1 2019-12-02 优化代码，修复clear方法清除不干净的问题
+ * @version v2.2 2019-12-18 调整定义seesion配置为为启用session_start()才定义，防止在PHP7.2以上的版本出现session_start()后定义session配置的错误
  */
 class Session
 {
@@ -66,27 +69,29 @@ class Session
         $isDoStart = false;
         // 判断是否在php.ini中开启是否已开启session
         if (PHP_SESSION_ACTIVE != session_status()) {
-            // 关闭php.ini的自动开启
+            // 未开启，关闭php.ini的自动开启
             ini_set('session.auto_start', 0);
             $isDoStart = true;
+
+            // 设置session前缀
+            if (isset($this->config['prefix']) && ($this->prefix === '' || $this->prefix === null)) {
+                $this->prefix = $this->config['prefix'];
+            }
+            // 设置session有效期
+            if (isset($this->config['expire']) && !empty($this->config['expire'])) {
+                ini_set('session.gc_maxlifetime', $this->config['expire']);
+                ini_set('session.cookie_lifetime', $this->config['expire']);
+            }
+            // session安全传输
+            if (isset($this->config['secure']) && !empty($this->config['secure'])) {
+                ini_set('session.cookie_secure', $this->config['secure']);
+            }
+            // httponly设置
+            if (isset($this->config['httponly']) && !empty($this->config['httponly'])) {
+                ini_set('session.cookie_httponly', $this->config['httponly']);
+            }
         }
-        // 设置session前缀
-        if (isset($this->config['prefix']) && ($this->prefix === '' || $this->prefix === null)) {
-            $this->prefix = $this->config['prefix'];
-        }
-        // 设置session有效期
-        if (isset($this->config['expire']) && !empty($this->config['expire'])) {
-            ini_set('session.gc_maxlifetime', $this->config['expire']);
-            ini_set('session.cookie_lifetime', $this->config['expire']);
-        }
-        // session安全传输
-        if (isset($this->config['secure']) && !empty($this->config['secure'])) {
-            ini_set('session.cookie_secure', $this->config['secure']);
-        }
-        // httponly设置
-        if (isset($this->config['httponly']) && !empty($this->config['httponly'])) {
-            ini_set('session.cookie_httponly', $this->config['httponly']);
-        }
+
         // 初始化
         if ($isDoStart) {
             session_start();

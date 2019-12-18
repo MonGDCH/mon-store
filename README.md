@@ -8,6 +8,10 @@ composer require mongdch/store
 ```
 ## 版本
 
+# v1.0.5
+
+* 优化SESSION类功能，防止在PHP7.2以上的版本出现在session_start后定义session配置的错误
+
 # v1.0.4
 
 * 优化代码，加强file类

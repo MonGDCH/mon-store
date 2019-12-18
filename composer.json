@@ -1,7 +1,7 @@
 {
     "name": "mongdch/mon-store",
     "description": "The PHP store util",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "license": "MIT",
     "keywords": [
         "session",
