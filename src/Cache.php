@@ -20,10 +20,15 @@ class Cache
      * @var array
      */
     protected $config = [
+        // 有效时间
         'expire'        => 0,
+        // 使用子目录保存
         'cache_subdir'  => true,
+        // 缓存前缀
         'prefix'        => '',
+        // 缓存路径
         'path'          => '',
+        // 数据压缩
         'data_compress' => false,
     ];
 
@@ -65,7 +70,7 @@ class Cache
     /**
      * 初始化
      *
-     * @return [type] [description]
+     * @return void
      */
     public function init()
     {
@@ -79,7 +84,7 @@ class Cache
      * 取得变量的存储文件名
      *
      * @param  string $key 名称
-     * @return [type]      [description]
+     * @return string
      */
     protected function getCacheKey($name)
     {
@@ -105,7 +110,7 @@ class Cache
      *
      * @param  string $name    名称
      * @param  mixed  $default 默认值
-     * @return [type]          [description]
+     * @return mixed
      */
     public function get($name, $default = false)
     {
@@ -214,7 +219,7 @@ class Cache
      * @param string        $name 标签名
      * @param string|array  $keys 缓存标识
      * @param bool          $overlay 是否覆盖
-     * @return $this
+     * @return Cache
      */
     public function tag($name, $keys = null, $overlay = false)
     {

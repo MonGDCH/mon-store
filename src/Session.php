@@ -104,7 +104,7 @@ class Session
     /**
      * session自动启动或者初始化
      *
-     * @return [type] [description]
+     * @return void
      */
     public function bootstrap()
     {
@@ -122,7 +122,7 @@ class Session
      * 设置或者获取session前缀
      *
      * @param  string $prefix 前缀
-     * @return [type]         [description]
+     * @return string|void
      */
     public function prefix($prefix = '')
     {
@@ -139,6 +139,7 @@ class Session
      * @param string $key    键名
      * @param string $value  键值
      * @param string $prefix 前缀
+     * @return void
      */
     public function set($key, $value = '', $prefix = null)
     {
@@ -191,9 +192,9 @@ class Session
      * 获取session值，支持.无限级获取值
      *
      * @param string $key       键名
-     * @param [type] $default   默认值
+     * @param mixed  $default   默认值
      * @param string $prefix    前缀
-     * @return void
+     * @return mixed
      */
     public function get($key = '', $default = null, $prefix = null)
     {
@@ -219,7 +220,7 @@ class Session
     /**
      * 清空所有session
      *
-     * @param [type] $prefix    前缀
+     * @param string $prefix    前缀
      * @return void
      */
     public function clear($prefix = null)
@@ -239,7 +240,7 @@ class Session
      *
      * @param  string|array $key 键名
      * @param  string $prefix 前缀
-     * @return [type] [description]
+     * @return void
      */
     public function del($key, $prefix = null)
     {
@@ -274,7 +275,7 @@ class Session
     /**
      * 重启session，会重新生成session_id
      *
-     * @return [type] [description]
+     * @return void
      */
     public function start()
     {
@@ -311,7 +312,7 @@ class Session
     /**
      * 获取当前session_id
      *
-     * @return [type] [description]
+     * @return mixed
      */
     public function getSessionId()
     {

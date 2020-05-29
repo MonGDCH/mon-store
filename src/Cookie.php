@@ -53,7 +53,7 @@ class Cookie
      * 注册Cookie
      * 
      * @param  array  $config 配置信息
-     * @return [type]         [description]
+     * @return void
      */
     public function register(array $config = [])
     {
@@ -71,7 +71,7 @@ class Cookie
      * 设置获取cookie前缀
      * 
      * @param  string $prefix Cookie前缀
-     * @return [type]         [description]
+     * @return string|null
      */
     public function prefix($prefix = '')
     {
@@ -88,6 +88,7 @@ class Cookie
      * @param string $key    键
      * @param mixed  $value  值, 可以是字符串，也可以是数组
      * @param array  $option 重新定义的配置，必须为数组
+     * @return void
      */
     public function set($key, $value = '', array $option = [])
     {
@@ -133,7 +134,7 @@ class Cookie
      * 
      * @param string        $name   cookie名称
      * @param string|null   $prefix cookie前缀
-     * @return bool
+     * @return boolean
      */
     public function has($name, $prefix = null)
     {
@@ -150,7 +151,7 @@ class Cookie
      * @param  string $key     键名
      * @param  mixed  $default 默认值
      * @param  mixed  $prefix  前缀
-     * @return [type]          [description]
+     * @return mixed
      */
     public function get($key = '', $default = null, $prefix = null)
     {
@@ -190,7 +191,7 @@ class Cookie
      * 
      * @param  string $key    键值
      * @param  mixed  $prefix 前缀
-     * @return [type]         [description]
+     * @return void
      */
     public function del($key, $prefix = null)
     {
@@ -209,7 +210,7 @@ class Cookie
      * 清空所有cookie
      *
      * @param  mixed  $prefix 前缀
-     * @return [type]         [description]
+     * @return void
      */
     public function clear($prefix = null)
     {
@@ -237,10 +238,10 @@ class Cookie
     /**
      * 数组对象的json格式切换
      * 
-     * @param  [type] &$val 值
-     * @param  [type] $key  键
+     * @param  mixed &$val 值
+     * @param  mixed $key  键
      * @param  string $type 类型 encode || decode
-     * @return [type]       [description]
+     * @return void
      */
     private function jsonFormatProtect(&$val, $key, $type = 'encode')
     {

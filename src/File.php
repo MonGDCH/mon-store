@@ -18,11 +18,11 @@ class File
     /**
      * 字节格式化 把字节数格式为 B K M G T P E Z Y 描述的大小
      *
-     * @param int $size 大小
-     * @param int $dec 精准度，小数位数
-     * @return int
+     * @param integer $size 大小
+     * @param integer $dec 精准度，小数位数
+     * @return integer
      */
-    public function formatByte($size, $dec = 0)
+    public function formatByte(int $size, $dec = 0)
     {
         $type = array("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB");
         $pos = 0;
@@ -39,6 +39,7 @@ class File
      * @param string $file 文件路径
      * @param string $type 操作类型
      * @param mixed  $ch_info 操作信息
+     * @throws InvalidArgumentException
      * @return boolean
      */
     public function changeAuth($file, $type, $ch_info)
@@ -62,7 +63,7 @@ class File
      * 获取上传文件信息
      *
      * @param  string $field $_FILES 字段索引
-     * @return [type]        [description]
+     * @return array
      */
     public function uploadFileInfo($field)
     {
@@ -70,17 +71,17 @@ class File
         $fileInfo = $_FILES[$field];
         $info = [];
         // 取得文件类型
-        $info['type']  = strtolower(trim(stripslashes(preg_replace("/^(.+?);.*$/", "\\1", $fileInfo['type'])), '"'));
+        $info['type'] = strtolower(trim(stripslashes(preg_replace("/^(.+?);.*$/", "\\1", $fileInfo['type'])), '"'));
         // 取得上传文件在服务器中临时保存目录
-        $info['temp']  = $fileInfo['tmp_name'];
+        $info['temp'] = $fileInfo['tmp_name'];
         // 取得上传文件大小
-        $info['size']  = $fileInfo['size'];
+        $info['size'] = $fileInfo['size'];
         // 取得文件上传错误
         $info['error'] = $fileInfo['error'];
         // 取得上传文件名
-        $info['name']  = $fileInfo['name'];
+        $info['name'] = $fileInfo['name'];
         // 取得上传文件后缀
-        $info['ext']   = $this->getExt($fileInfo['name']);
+        $info['ext'] = $this->getExt($fileInfo['name']);
         return $info;
     }
 
@@ -88,7 +89,7 @@ class File
      * 创建目录
      *
      * @param  string $dirPath 目录路径
-     * @return [type]          [description]
+     * @return boolean
      */
     public function createDir($dirPath)
     {
@@ -101,7 +102,7 @@ class File
      *
      * @param  string  $dirPath 目录路径
      * @param  boolean $all     是否删除所有
-     * @return [type]           [description]
+     * @return boolean
      */
     public function removeDir($dirPath, $all = false)
     {
@@ -127,7 +128,7 @@ class File
      * 获取指定目录的信息
      *
      * @param  string $dir  目录路径
-     * @return [type]       [description]
+     * @return array
      */
     public function getDirInfo($dir)
     {
@@ -161,7 +162,7 @@ class File
      * 获取目录内容
      *
      * @param  string] $dir 目录路径
-     * @return [type]       [description]
+     * @return array|false
      */
     public function getDirContent($dir)
     {
@@ -174,7 +175,7 @@ class File
      * @param  string  $content 写入内容
      * @param  string  $path    文件路径
      * @param  boolean $append  存在文件是否继续写入
-     * @return [type]           [description]
+     * @return boolean
      */
     public function createFile($content, $path, $append = true)
     {
@@ -194,7 +195,7 @@ class File
      * 删除文件
      *
      * @param  string $path 文件路径
-     * @return [type]       [description]
+     * @return mixed
      */
     public function removeFile($path)
     {
@@ -208,7 +209,7 @@ class File
      * 获取完整文件名称
      *
      * @param  string $path 目录路径
-     * @return [type]       [description]
+     * @return string
      */
     public function getBaseName($path)
     {
@@ -219,7 +220,7 @@ class File
      * 获取文件后缀名
      * 
      * @param  string $path 文件路径
-     * @return [type]       [description]
+     * @return string
      */
     public function getExt($path)
     {
@@ -231,7 +232,7 @@ class File
      *
      * @param  string $oldFileName 旧名称
      * @param  string $newFileNmae 新名称
-     * @return [type]              [description]
+     * @return boolean
      */
     public function rename($oldFileName, $newFileNmae)
     {
@@ -246,7 +247,7 @@ class File
      * 读取文件内容
      *
      * @param  string $file 文件路径
-     * @return [type]       [description]
+     * @return string
      */
     public function read($file)
     {
@@ -257,7 +258,7 @@ class File
      * 获取文件信息
      *
      * @param  string $file 文件路径
-     * @return [type]       [description]
+     * @return array
      */
     public function getFileInfo($file)
     {
@@ -313,7 +314,8 @@ class File
      * @param  integer $maxSize 文件最大尺寸
      * @param  string  $rollNum 分卷数
      * @param  string  $postfix 文件后缀
-     * @return [type]           [description]
+     * @throws RuntimeException
+     * @return mixed
      */
     public function subsectionFile($content, $path, $maxSize = 20480000, $rollNum = 3, $postfix = '.log')
     {
@@ -340,7 +342,7 @@ class File
      *
      * @param [type] $path  路径
      * @param boolean $tree 输出树结构还是数组
-     * @return void
+     * @return mixed
      */
     public function getFoldersContent($path, $tree = false)
     {
@@ -356,7 +358,7 @@ class File
      * 获取路径下所有的内容及后代内容转数组辅助方法
      *
      * @param DirectoryIterator $dir
-     * @return void
+     * @return mixed
      */
     protected function directoryIteratorToArray(DirectoryIterator $dir)
     {
@@ -380,7 +382,7 @@ class File
      * 获取路径下所有的内容及后代内容转树结构辅助方法
      *
      * @param DirectoryIterator $dir
-     * @return void
+     * @return mixed
      */
     protected function directoryIteratorToTree(DirectoryIterator $dir)
     {
@@ -414,7 +416,8 @@ class File
      * @param  string $path    文件路径
      * @param  int    $rollNum 分卷数
      * @param  string $postfix 后缀名
-     * @return [type]          [description]
+     * @throws RuntimeException
+     * @return void
      */
     protected function shiftFile($path, $rollNum, $postfix = '.log')
     {
@@ -453,7 +456,7 @@ class File
      *
      * @param  string $fileName 文件名称，不含后缀
      * @param  int    $num      分卷数
-     * @return [type]           [description]
+     * @return string
      */
     protected function buildShiftName($fileName, $num)
     {

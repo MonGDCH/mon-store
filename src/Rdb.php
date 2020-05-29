@@ -28,9 +28,16 @@ class Rdb
      * @var array
      */
     private $config = [
-        'host'       => '127.0.0.1',
-        'port'       => 6379,
-        'password'   => '',
+        // 链接host
+        'host'      => '127.0.0.1',
+        // 链接端口
+        'port'      => 6379,
+        // 链接密码
+        'password'  => '',
+        // 自定义键前缀
+        'prefix'    => '',
+        // 读取超时时间
+        'timeout'   => 0,
     ];
 
     /**
@@ -52,6 +59,12 @@ class Rdb
         if ($this->config['password']) {
             $this->handler->auth($this->config['password']);
         }
+        if ($this->config['prefix']) {
+            $this->handler->setOption(Redis::OPT_PREFIX, $this->config['prefix']);
+        }
+        if ($this->config['timeout']) {
+            $this->handler->setOption(3, $this->config['timeout']);
+        }
     }
 
     /**
@@ -70,7 +83,7 @@ class Rdb
      * 获取key值
      *
      * @param  [type] $key 键名
-     * @return [type]      [description]
+     * @return mixed
      */
     public function get($key)
     {
@@ -81,7 +94,7 @@ class Rdb
      * 获取多个key值
      *
      * @param  array  $key 键名
-     * @return [type]      [description]
+     * @return mixed
      */
     public function mGet(array $key)
     {
