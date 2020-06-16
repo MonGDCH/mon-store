@@ -22,7 +22,7 @@ class File
      * @param integer $dec 精准度，小数位数
      * @return integer
      */
-    public function formatByte(int $size, $dec = 0)
+    public function formatByte($size, $dec = 0)
     {
         $type = array("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB");
         $pos = 0;
@@ -161,12 +161,48 @@ class File
     /**
      * 获取目录内容
      *
-     * @param  string] $dir 目录路径
+     * @param  string $dir 目录路径
      * @return array|false
      */
     public function getDirContent($dir)
     {
-        return scandir($dir);
+        if (!is_dir($dir)) {
+            throw new InvalidArgumentException("dir path is not dir!");
+        }
+        //遍历目录取得文件信息
+        $data = [];
+        if ($handle = opendir($dir)) {
+            $i = 0;
+            while (false !== ($filename = readdir($handle))) {
+                if (strpos($filename, '.') === 0) {
+                    continue;
+                }
+                $file = rtrim($dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $filename;
+                if (is_dir($file)) {
+                    // 是否文件夹
+                    $data[$i]['is_dir'] = true;
+                    // 文件夹是否包含文件
+                    $data[$i]['has_file'] = (count(scandir($file)) > 2);
+                    // 文件大小
+                    $data[$i]['filesize'] = 0;
+                    // 文件类别，用扩展名判断
+                    $data[$i]['filetype'] = '';
+                } else {
+                    $data[$i]['is_dir'] = false;
+                    $data[$i]['has_file'] = false;
+                    $data[$i]['filesize'] = filesize($file);
+                    $data[$i]['filetype'] = $this->getExt($file);
+                }
+                // 文件名，包含扩展名
+                $data[$i]['filename'] = $filename;
+                // 文件最后修改时间
+                $data[$i]['datetime'] = date('Y-m-d H:i:s', filemtime($file));
+                $i++;
+            }
+            closedir($handle);
+        }
+
+        return $data;
     }
 
     /**

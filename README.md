@@ -8,6 +8,10 @@ composer require mongdch/store
 ```
 ## 版本
 
+# v1.0.7
+
+* 优化代码，增强File类
+
 # v1.0.6
 
 * 增强RDB类功能，增加读取超时时间配置及key前缀配置

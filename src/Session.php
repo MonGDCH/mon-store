@@ -2,8 +2,6 @@
 
 namespace mon\store;
 
-use Pimple\Container;
-
 /**
  * Session辅助类
  *
