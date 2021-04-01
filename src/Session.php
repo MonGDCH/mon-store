@@ -2,6 +2,8 @@
 
 namespace mon\store;
 
+use mon\util\Instance;
+
 /**
  * Session辅助类
  *
@@ -12,6 +14,8 @@ namespace mon\store;
  */
 class Session
 {
+    use Instance;
+
     /**
      * 配置信息
      *
@@ -56,7 +60,7 @@ class Session
      * 注册初始化session配置
      *
      * @param array $config 配置信息
-     * @return void
+     * @return Session
      */
     public function register(array $config = [])
     {
@@ -97,12 +101,14 @@ class Session
         } else {
             $this->init = false;
         }
+
+        return $this;
     }
 
     /**
      * session自动启动或者初始化
      *
-     * @return void
+     * @return Session
      */
     public function bootstrap()
     {
@@ -114,6 +120,8 @@ class Session
             }
             $this->init = true;
         }
+
+        return $this;
     }
 
     /**
@@ -166,7 +174,7 @@ class Session
      *
      * @param  string  $key    键名
      * @param  string  $prefix 前缀
-     * @return boolean         [description]
+     * @return boolean
      */
     public function has($key, $prefix = null)
     {
@@ -310,7 +318,7 @@ class Session
     /**
      * 获取当前session_id
      *
-     * @return mixed
+     * @return string
      */
     public function getSessionId()
     {

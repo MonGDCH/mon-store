@@ -3,6 +3,7 @@
 namespace mon\store;
 
 use Redis;
+use mon\util\Instance;
 use BadFunctionCallException;
 use InvalidArgumentException;
 
@@ -10,15 +11,18 @@ use InvalidArgumentException;
  * Redis操作类
  *
  * @author Mon <985558837@qq.com>
- * @version 1.0 2018-05-20
- * @version 1.1 2019-12-02 修复自定义Redis配置无效的BUG
+ * @version 1.0.0 2018-05-20
+ * @version 1.1.0 2019-12-02 修复自定义Redis配置无效的BUG
+ * @version 1.2.0 2021-03-29 优化代码，增强注解
  */
 class Rdb
 {
+    use Instance;
+
     /**
      * redis链接实例
      * 
-     * @var [type]
+     * @var Redis
      */
     private $handler;
 
@@ -82,8 +86,8 @@ class Rdb
     /**
      * 获取key值
      *
-     * @param  [type] $key 键名
-     * @return mixed
+     * @param  string $key 键名
+     * @return string|false
      */
     public function get($key)
     {
@@ -94,7 +98,7 @@ class Rdb
      * 获取多个key值
      *
      * @param  array  $key 键名
-     * @return mixed
+     * @return array
      */
     public function mGet(array $key)
     {
@@ -104,10 +108,10 @@ class Rdb
     /**
      * 返回字符串的一部分
      *
-     * @param  [type] $key   key名
-     * @param  [type] $start 起始点
-     * @param  [type] $end   结束点
-     * @return [type]        [description]
+     * @param  string $key   key名
+     * @param  integer $start 起始点
+     * @param  integer $end   结束点
+     * @return string|false
      */
     public function getRange($key, $start, $end)
     {
@@ -117,8 +121,8 @@ class Rdb
     /**
      * 返回字符串长度
      *
-     * @param  [type] $key 键名
-     * @return [type]      [description]
+     * @param  string $key 键名
+     * @return integer
      */
     public function strlen($key)
     {
@@ -128,9 +132,9 @@ class Rdb
     /**
      * 获取key的原值，并设置新值，不存在原值则返回false
      *
-     * @param  [type] $key   键名
-     * @param  [type] $value 键值
-     * @return [type]        [description]
+     * @param  string $key   键名
+     * @param  string $value 键值
+     * @return string
      */
     public function getSet($key, $value)
     {
@@ -140,21 +144,22 @@ class Rdb
     /**
      * 设置一个key值
      *
-     * @param [type] $key     键名
-     * @param [type] $value   键名
-     * @param [type] $options 其他信息
+     * @param string $key     键名
+     * @param string $value   键名
+     * @param integer $timeout 设置超时时间
+     * @return boolean
      */
-    public function set($key, $value, $options = '')
+    public function set($key, $value, $timeout = null)
     {
-        return $this->handler->set($key, $value, $options);
+        return $this->handler->set($key, $value, $timeout);
     }
 
     /**
      * 添加指定的字符串到指定的字符串key
      *
-     * @param  [type] $key   键名
-     * @param  [type] $value 键值
-     * @return [type]        返回新的key size
+     * @param  string $key   键名
+     * @param  string $value 键值
+     * @return integer 返回新的key size
      */
     public function append($key, $value)
     {
@@ -164,10 +169,10 @@ class Rdb
     /**
      * 设置一个有过期时间的key值, 单位秒
      * 
-     * @param  [type] $key    键名
-     * @param  [type] $value  键值
-     * @param  [type] $expire 有效时间, 单位秒
-     * @return [type]         [description]
+     * @param  string $key    键名
+     * @param  string $value  键值
+     * @param  integer $expire 有效时间, 单位秒
+     * @return boolean
      */
     public function setex($key, $value, $expire)
     {
@@ -177,10 +182,10 @@ class Rdb
     /**
      * 设置一个有过期时间的key值, 单位毫秒
      * 
-     * @param  [type] $key    键
-     * @param  [type] $value  值
-     * @param  [type] $expire 有效时间，单位毫秒
-     * @return [type]         [description]
+     * @param  string $key    键
+     * @param  string $value  值
+     * @param  integer $expire 有效时间，单位毫秒
+     * @return boolean
      */
     public function psetex($key, $value, $expire)
     {
@@ -190,9 +195,9 @@ class Rdb
     /**
      * 设置一个key值,如果key存在,不做任何操作
      * 
-     * @param  [type] $key   键
-     * @param  [type] $value 值
-     * @return [type]        [description]
+     * @param  string $key   键
+     * @param  string $value 值
+     * @return boolean
      */
     public function setnx($key, $value)
     {
@@ -202,9 +207,10 @@ class Rdb
     /**
      * 替换字符串的一部分, 主要配置setex, 实现更新值有效时间不更新
      *
-     * @param [type]  $key    key
-     * @param [type]  $value  值
-     * @param integer $offset offset
+     * @param string  $key    key
+     * @param string  $value  值
+     * @param integer $offset 偏移值
+     * @return string 修改后的字符串长度
      */
     public function setRange($key, $value, $offset = 0)
     {
@@ -214,8 +220,8 @@ class Rdb
     /**
      * 批量设置key值
      * 
-     * @param  [type] $array 键值对
-     * @return [type]        [description]
+     * @param  array $array 键值对
+     * @return boolean
      */
     public function mSet($array)
     {
@@ -225,8 +231,8 @@ class Rdb
     /**
      * 移除已经存在key
      *
-     * @param  [type] $key key名，字符串或者数组
-     * @return [type]      [description]
+     * @param  string $key key名，字符串或者数组
+     * @return integer 返回删除KEY-VALUE的数量
      */
     public function delete($key)
     {
@@ -236,7 +242,8 @@ class Rdb
     /**
      * 判断一个key值是不是存在
      *
-     * @param [type] $key 键名
+     * @param string $key 键名
+     * @return boolean
      */
     public function exists($key)
     {
@@ -246,9 +253,9 @@ class Rdb
     /**
      * 对key的值加value, 相当于 key = key + value
      *
-     * @param  [type] $key   键
-     * @param  int    $value 值
-     * @return [type]        返回新的INT数值
+     * @param  string  $key   键
+     * @param  integer $value 值
+     * @return integer 返回新的INT数值
      */
     public function incrBy($key, $value)
     {
@@ -258,9 +265,9 @@ class Rdb
     /**
      * 对key的值加value, 相当于 key = key + value
      *
-     * @param  [type] $key   键
+     * @param  string $key   键
      * @param  float  $value 值
-     * @return [type]        返回新的INT数值
+     * @return float
      */
     public function incrByFloat($key, $value)
     {
@@ -270,9 +277,9 @@ class Rdb
     /**
      * 对key的值减value, 相当于 key = key - value
      *
-     * @param  [type] $key   键
-     * @param  int    $value 值
-     * @return [type]        返回新的INT数值
+     * @param  string  $key   键
+     * @param  integer $value 值
+     * @return integer 返回新的INT数值
      */
     public function decrBy($key, $value)
     {
@@ -282,9 +289,9 @@ class Rdb
     /**
      * 对key的值减value, 相当于 key = key - value
      *
-     * @param  [type] $key   键
+     * @param  string $key   键
      * @param  float  $value 值
-     * @return [type]        返回新的INT数值
+     * @return float 返回新的INT数值
      */
     public function decrByFloat($key, $value)
     {
@@ -296,10 +303,10 @@ class Rdb
     /**
      * 为hash表设定一个字段的值
      * 
-     * @param  [type] $key   键
-     * @param  [type] $field 字段
-     * @param  [type] $value 值
-     * @return [type]        [description]
+     * @param  string $key   键
+     * @param  string $field 字段
+     * @param  string $value 值
+     * @return string|false
      */
     public function hSet($key, $field, $value)
     {
@@ -309,9 +316,9 @@ class Rdb
     /**
      * 得到hash表中一个字段的值
      * 
-     * @param  [type] $key   键
-     * @param  [type] $field 字段
-     * @return [type]        [description]
+     * @param  string $key   键
+     * @param  string $field 字段
+     * @return string|false
      */
     public function hGet($key, $field)
     {
@@ -321,9 +328,9 @@ class Rdb
     /**
      * 删除hash表中指定字段 ,支持批量删除
      *
-     * @param  [type] $key   键
-     * @param  [type] $field 字段
-     * @return [type]        [description]
+     * @param  string $key   键
+     * @param  string $field 字段
+     * @return boolean
      */
     public function hDel($key, $field)
     {
@@ -344,8 +351,8 @@ class Rdb
     /**
      * 返回hash表元素个数
      *
-     * @param  [type] $key 键
-     * @return [type]      [description]
+     * @param  string $key 键
+     * @return integer|false
      */
     public function hLen($key)
     {
@@ -355,10 +362,10 @@ class Rdb
     /**
      * 为hash表设定一个字段的值,如果字段存在，返回false
      *
-     * @param  [type] $key   键
-     * @param  [type] $field 字段
-     * @param  [type] $value 值
-     * @return [type]        [description]
+     * @param  string $key   键
+     * @param  string $field 字段
+     * @param  string $value 值
+     * @return boolean
      */
     public function hSetNx($key, $field, $value)
     {
@@ -368,11 +375,11 @@ class Rdb
     /**
      * 为hash表多个字段设定值。
      * 
-     * @param  [type] $key   键
-     * @param  [type] $value 值
-     * @return [type]        [description]
+     * @param  string $key   键
+     * @param  array $value 值
+     * @return boolean
      */
-    public function hMset($key, $value)
+    public function hMset($key, array $value)
     {
         if (!is_array($value)) {
             return false;
@@ -383,6 +390,7 @@ class Rdb
 
     /**
      * 获取hash表多个字段值。
+     *
      * @param string $key  键
      * @param array|string $value 值，string则以','号分隔字段
      * @return array|bool
@@ -399,10 +407,10 @@ class Rdb
     /**
      * 为hash表的某个值累加整数，可以负数
      * 
-     * @param string $key   key值
-     * @param int $field    字段
-     * @param string $value 步长
-     * @return bool
+     * @param string $key    key值
+     * @param string $field  字段
+     * @param integer $value 步长
+     * @return integer
      */
     public function hIncrBy($key, $field, $value)
     {
@@ -415,9 +423,9 @@ class Rdb
      * 为hash表的某个值累加浮点数，可以负数
      * 
      * @param string $key   key值
-     * @param int $field    字段
-     * @param string $value 步长
-     * @return bool
+     * @param string $field 字段
+     * @param float  $value 步长
+     * @return float
      */
     public function hIncrByFloat($key, $field, $value)
     {
@@ -430,7 +438,7 @@ class Rdb
      * 返回所有hash表的所有字段
      *
      * @param string $key 键
-     * @return array|bool
+     * @return array
      */
     public function hKeys($key)
     {
@@ -441,7 +449,7 @@ class Rdb
      * 返回所有hash表的字段值，为一个索引数组
      * 
      * @param string $key 键
-     * @return array|bool
+     * @return array
      */
     public function hVals($key)
     {
@@ -451,9 +459,9 @@ class Rdb
     /**
      * 验证HASH表中是否存在指定的KEY-VALUE
      *
-     * @param  [type] $key   键
-     * @param  [type] $value 值
-     * @return [type]        [description]
+     * @param  string $key   键
+     * @param  string $value 值
+     * @return boolean
      */
     public function hExists($key, $value)
     {
@@ -464,7 +472,7 @@ class Rdb
      * 返回所有hash表的字段值，为一个关联数组
      * 
      * @param string $key 键
-     * @return array|bool
+     * @return array
      */
     public function hGetAll($key)
     {
@@ -476,9 +484,9 @@ class Rdb
     /**
      * 在队列尾部插入一个元素
      * 
-     * @param [type] $key 键
-     * @param [type] $value 值
-     * 返回队列长度
+     * @param string $key 键
+     * @param string $value 值
+     * @return integer|false 返回队列长度
      */
     public function rPush($key, $value)
     {
@@ -488,9 +496,9 @@ class Rdb
     /**
      * 在队列尾部插入一个元素 如果key不存在，什么也不做
      * 
-     * @param [type] $key 键
-     * @param [type] $value 值
-     * @return 返回队列长度
+     * @param string $key 键
+     * @param string $value 值
+     * @return integer|false 返回队列长度
      */
     public function rPushx($key, $value)
     {
@@ -500,9 +508,9 @@ class Rdb
     /**
      * 在队列头部插入一个元素
      * 
-     * @param [type] $key 键
-     * @param [type] $value 值
-     * @return 返回队列长度
+     * @param string $key 键
+     * @param string $value 值
+     * @return integer|false 返回队列长度
      */
     public function lPush($key, $value)
     {
@@ -512,9 +520,9 @@ class Rdb
     /**
      * 在队列头插入一个元素 如果key不存在，什么也不做
      *
-     * @param [type] $key 键
-     * @param [type] $value 值
-     * @return 返回队列长度
+     * @param string $key 键
+     * @param string $value 值
+     * @return integer|false 返回队列长度
      */
     public function lPushx($key, $value)
     {
@@ -524,7 +532,8 @@ class Rdb
     /**
      * 返回队列长度
      * 
-     * @param [type] $key 值
+     * @param string $key 值
+     * @return integer
      */
     public function lLen($key)
     {
@@ -534,8 +543,8 @@ class Rdb
     /**
      * 返回队列大小
      *
-     * @param  [type] $key 键
-     * @return [type]      [description]
+     * @param  string $key 键
+     * @return integer|false
      */
     public function lSize($key)
     {
@@ -545,9 +554,10 @@ class Rdb
     /**
      * 返回队列指定区间的元素
      * 
-     * @param [type] $key   键
-     * @param [type] $start 起点
-     * @param [type] $end   终点
+     * @param string $key    键
+     * @param integer $start 起点
+     * @param integer $end   终点
+     * @return array
      */
     public function lRange($key, $start, $end)
     {
@@ -557,10 +567,10 @@ class Rdb
     /**
      * 截取LIST中指定范围内的元素组成一个新的LIST并指向KEY
      *
-     * @param  [type] $key   键
-     * @param  [type] $start 起点
-     * @param  [type] $end   终点
-     * @return [type]        [description]
+     * @param  string $key    键
+     * @param  integer $start 起点
+     * @param  integer $end   终点
+     * @return array
      */
     public function lTrim($key, $start, $end)
     {
@@ -570,8 +580,9 @@ class Rdb
     /**
      * 返回队列中指定索引的元素
      * 
-     * @param [type] $key   键
-     * @param [type] $index 值
+     * @param string $key   键
+     * @param string $index 值
+     * @return mixed
      */
     public function lIndex($key, $index)
     {
@@ -581,9 +592,9 @@ class Rdb
     /**
      * 根据索引值返回指定KEY-LIST中的元素，0为第一个
      *
-     * @param  [type] $key   键
-     * @param  [type] $index 值
-     * @return [type]        [description]
+     * @param  string  $key   键
+     * @param  integer $index 值
+     * @return string|false
      */
     public function lGet($key, $index)
     {
@@ -593,9 +604,10 @@ class Rdb
     /**
      * 设定队列中指定index的值。
      * 
-     * @param [type] $key   键
-     * @param [type] $index 索引
-     * @param [type] $value 值
+     * @param string  $key   键
+     * @param integer $index 索引
+     * @param string  $value 值
+     * @return boolean
      */
     public function lSet($key, $index, $value)
     {
@@ -609,9 +621,10 @@ class Rdb
      *  >0　从头部开始
      *  =0　删除全部
      *  
-     * @param [type] $key   键
-     * @param [type] $count 数量
-     * @param [type] $value 值
+     * @param string $key   键
+     * @param integer $count 数量
+     * @param string $value 值
+     * @return integer|false
      */
     public function lRem($key, $count, $value)
     {
@@ -621,7 +634,8 @@ class Rdb
     /**
      * 删除并返回队列中的头元素。
      * 
-     * @param [type] $key   键
+     * @param string $key   键
+     * @return string|false
      */
     public function lPop($key)
     {
@@ -631,7 +645,8 @@ class Rdb
     /**
      * 删除并返回队列中的尾元素
      * 
-     * @param [type] $key   键
+     * @param string $key   键
+     * @return string|false
      */
     public function rPop($key)
     {
@@ -641,9 +656,9 @@ class Rdb
     /**
      * 从key-LIST的最后弹出一个元素，并且把这个元素从target-LIST的顶部压入target-LIST中
      *
-     * @param  [type] $key        键
-     * @param  [type] $target_key 目标键
-     * @return [type]             [description]
+     * @param  string $key        键
+     * @param  string $target_key 目标键
+     * @return string|false
      */
     public function rpoplpush($key, $target_key)
     {
@@ -655,7 +670,8 @@ class Rdb
     /**
      * 返回集合中所有元素
      *
-     * @param [type] $key   键
+     * @param string $key   键
+     * @return array
      */
     public function sMembers($key)
     {
@@ -665,9 +681,9 @@ class Rdb
     /**
      * 检查VALUE是否是key-SET容器中的成员
      *
-     * @param  [type] $key   键
-     * @param  [type] $value 值
-     * @return [type]        [description]
+     * @param  string $key   键
+     * @param  string $value 值
+     * @return boolean
      */
     public function sIsMember($key, $value)
     {
@@ -675,29 +691,22 @@ class Rdb
     }
 
     /**
-     * 添加集合。由于版本问题，扩展不支持批量添加。这里做了封装
+     * 添加集合
      *
-     * @param [type] $key   键
-     * @param string|array $value   值
-     * @return 增加数
+     * @param string $key   键
+     * @param string $value 值
+     * @return boolean
      */
     public function sAdd($key, $value)
     {
-        if (!is_array($value)) {
-            $arr = array($value);
-        } else {
-            $arr = $value;
-        }
-
-        foreach ($arr as $row) {
-            $this->handler->sAdd($key, $row);
-        }
+        return $this->handler->sAdd($key, $value);
     }
 
     /**
      * 返回无序集合的元素个数
      *
-     * @param [type] $key   键
+     * @param string $key   键
+     * @return integer
      */
     public function sCard($key)
     {
@@ -707,8 +716,8 @@ class Rdb
     /**
      * 随机返回一个元素，并且在key-SET容器中移除该元素。
      *
-     * @param  [type] $key 键
-     * @return [type]      [description]
+     * @param  string $key 键
+     * @return string|false
      */
     public function sPop($key)
     {
@@ -718,8 +727,8 @@ class Rdb
     /**
      * 取得指定key-SET容器中的一个随机元素，但不会在key-SET容器中移除它
      *
-     * @param  [type] $key 键
-     * @return [type]      [description]
+     * @param  string $key 键
+     * @return string|false
      */
     public function sRandMember($key)
     {
@@ -729,8 +738,9 @@ class Rdb
     /**
      * 从集合中删除一个元素
      *
-     * @param [type] $key   键
-     * @param [type] $value 值
+     * @param string $key   键
+     * @param string $value 值
+     * @return boolean
      */
     public function sRem($key, $value)
     {
@@ -740,10 +750,10 @@ class Rdb
     /**
      * 移动一个指定的MEMBER从key-SET到指定的target-SET中
      *
-     * @param  [type] $key    键
-     * @param  [type] $target 目标键
-     * @param  [type] $member 成员值
-     * @return [type]         [description]
+     * @param  string $key    键
+     * @param  string $target 目标键
+     * @param  string $member 成员值
+     * @return string|false
      */
     public function sMove($key, $target, $member)
     {
@@ -753,9 +763,9 @@ class Rdb
     /**
      * 返回指定两个SETS集合的交集结果，注意：原生的sInter可传N个key名
      *
-     * @param  [type] $key1 键1
-     * @param  [type] $key2 键2
-     * @return [type]       [description]
+     * @param  string $key1 键1
+     * @param  string $key2 键2
+     * @return array
      */
     public function sInter($key1, $key2)
     {
@@ -765,10 +775,10 @@ class Rdb
     /**
      * 执行一个交集操作，并把结果存储到一个新的SET容器中
      *
-     * @param  [type] $name 新的key名
-     * @param  [type] $key1 键1
-     * @param  [type] $key2 键2
-     * @return [type]       [description]
+     * @param  string $name 新的key名
+     * @param  string $key1 键1
+     * @param  string $key2 键2
+     * @return integer
      */
     public function sInterStore($name, $key1, $key2)
     {
@@ -778,9 +788,9 @@ class Rdb
     /**
      * 返回指定两个SETS集合的并集结果，注意：原生的sUnion可传N个key名
      *
-     * @param  [type] $key1 键1
-     * @param  [type] $key2 键2
-     * @return [type]       [description]
+     * @param  string $key1 键1
+     * @param  string $key2 键2
+     * @return array
      */
     public function sUnion($key1, $key2)
     {
@@ -790,10 +800,10 @@ class Rdb
     /**
      * 执行一个并集操作，并把结果存储到一个新的SET容器中
      *
-     * @param  [type] $name 新的key名
-     * @param  [type] $key1 键1
-     * @param  [type] $key2 键2
-     * @return [type]       [description]
+     * @param  string $name 新的key名
+     * @param  string $key1 键1
+     * @param  string $key2 键2
+     * @return integer 并集结果的个数
      */
     public function sUnionStore($name, $key1, $key2)
     {
@@ -803,8 +813,9 @@ class Rdb
     /**
      * 求2个集合的差集
      *
-     * @param [type] $key1  键1
-     * @param [type] $key2  键2
+     * @param string $key1  键1
+     * @param string $key2  键2
+     * @return array
      */
     public function sDiff($key1, $key2)
     {
@@ -814,10 +825,10 @@ class Rdb
     /**
      * 执行一个差集操作，并把结果存储到一个新的SET容器中
      *
-     * @param  [type] $name 键名
-     * @param  [type] $key1 键1
-     * @param  [type] $key2 键2
-     * @return [type]       [description]
+     * @param  string $name 键名
+     * @param  string $key1 键1
+     * @param  string $key2 键2
+     * @return integer 结果集的个数
      */
     public function sDiffStore($name, $key1, $key2)
     {
@@ -827,11 +838,11 @@ class Rdb
     /**
      * 筛选集合
      *
-     * @param  [type] $key    键
-     * @param  array  $option 其他信息
-     * @return [type]         [description]
+     * @param  string  $key    键
+     * @param  integer $option 其他信息
+     * @return array
      */
-    public function sort($key, array $option)
+    public function sort($key, $option = null)
     {
         return $this->handler->sort($key, $option);
     }
@@ -844,7 +855,7 @@ class Rdb
      * @param string $key   键
      * @param string $order 序号
      * @param string $value 值
-     * @return bool
+     * @return boolean
      */
     public function zAdd($key, $order, $value)
     {
@@ -854,9 +865,9 @@ class Rdb
     /**
      * 从有序集合中删除指定的成员
      *
-     * @param  [type] $key   键
-     * @param  [type] $value 值
-     * @return [type]        [description]
+     * @param  string $key   键
+     * @param  string $value 值
+     * @return boolean
      */
     public function zDelete($key, $value)
     {
@@ -869,7 +880,7 @@ class Rdb
      * @param string $key   键
      * @param string $num   序号
      * @param string $value 值
-     * @return 返回新的order
+     * @return mixed 返回新的order
      */
     public function zinCry($key, $num, $value)
     {
@@ -880,8 +891,8 @@ class Rdb
      * 删除值为value的元素
      * 
      * @param string $key   键
-     * @param stirng $value 值
-     * @return bool
+     * @param string $value 值
+     * @return boolean
      */
     public function zRem($key, $value)
     {
@@ -891,10 +902,10 @@ class Rdb
     /**
      * 集合以order递增排列后，0表示第一个元素，-1表示最后一个元素
      * 
-     * @param string $key   键
-     * @param int $start    开始位置
-     * @param int $end      结束位置
-     * @return array|bool
+     * @param string  $key   键
+     * @param integer $start 开始位置
+     * @param integer $end   结束位置
+     * @return array
      */
     public function zRange($key, $start, $end)
     {
@@ -904,10 +915,10 @@ class Rdb
     /**
      * 集合以order递减排列后，0表示第一个元素，-1表示最后一个元素
      * 
-     * @param string $key   键
-     * @param int $start    开始位置
-     * @param int $end      结束位置
-     * @return array|bool
+     * @param string  $key   键
+     * @param integer $start 开始位置
+     * @param integer $end   结束位置
+     * @return array
      */
     public function zRevRange($key, $start, $end)
     {
@@ -918,15 +929,15 @@ class Rdb
      * 集合以order递增排列后，返回指定order之间的元素。
      * min和max可以是-inf和+inf　表示最大值，最小值
      * 
-     * @param string $key   键
-     * @param int $start    开始位置
-     * @param int $end      结束位置
-     * @package array $option 参数
+     * @param string  $key    键
+     * @param integer $start  开始位置
+     * @param integer $end    结束位置
+     * @param array   $option 参数
      *     withscores=>true，表示数组下标为Order值，默认返回索引数组
      *     limit=>array(0,1) 表示从0开始，取一条记录。
-     * @return array|bool
+     * @return array
      */
-    public function zRangeByScore($key, $start = '-inf', $end = "+inf", $option = array())
+    public function zRangeByScore($key, $start = '-inf', $end = "+inf", $option = [])
     {
         return $this->handler->zRangeByScore($key, $start, $end, $option);
     }
@@ -935,15 +946,15 @@ class Rdb
      * 集合以order递减排列后，返回指定order之间的元素。
      * min和max可以是-inf和+inf　表示最大值，最小值
      * 
-     * @param string $key   键
-     * @param int $start    开始位置
-     * @param int $end      结束位置
-     * @package array $option 参数
+     * @param string  $key    键
+     * @param integer $start  开始位置
+     * @param integer $end    结束位置
+     * @param array   $option 参数
      *     withscores=>true，表示数组下标为Order值，默认返回索引数组
      *     limit=>array(0,1) 表示从0开始，取一条记录。
-     * @return array|bool
+     * @return array
      */
-    public function zRevRangeByScore($key, $start = '-inf', $end = "+inf", $option = array())
+    public function zRevRangeByScore($key, $start = '-inf', $end = "+inf", $option = [])
     {
         return $this->handler->zRevRangeByScore($key, $start, $end, $option);
     }
@@ -951,9 +962,10 @@ class Rdb
     /**
      * 返回order值在start end之间的数量
      * 
-     * @param string $key   键
-     * @param int $start    开始位置
-     * @param int $end      结束位置
+     * @param string  $key   键
+     * @param integer $start 开始位置
+     * @param integer $end   结束位置
+     * @return integer
      */
     public function zCount($key, $start, $end)
     {
@@ -963,8 +975,9 @@ class Rdb
     /**
      * 返回值为value的order值
      * 
-     * @param [type] $key   键
-     * @param [type] $value 值
+     * @param string $key   键
+     * @param float  $value 值
+     * @return float
      */
     public function zScore($key, $value)
     {
@@ -974,8 +987,9 @@ class Rdb
     /**
      * 返回集合以score递增加排序后，指定成员的排序号，从0开始。
      * 
-     * @param [type] $key   键
-     * @param [type] $value 值
+     * @param string $key   键
+     * @param float  $value 值
+     * @return float
      */
     public function zRank($key, $value)
     {
@@ -985,8 +999,9 @@ class Rdb
     /**
      * 返回集合以score递增加排序后，指定成员的排序号，从0开始。
      * 
-     * @param [type] $key   键
-     * @param [type] $value 值
+     * @param string $key   键
+     * @param float  $value 值
+     * @return float
      */
     public function zRevRank($key, $value)
     {
@@ -997,10 +1012,10 @@ class Rdb
      * 删除集合中，score值在start end之间的元素　包括start end
      * min和max可以是-inf和+inf　表示最大值，最小值
      * 
-     * @param string $key   键
-     * @param int    $start 开始位置
-     * @param int    $end   结束位置
-     * @return 删除成员的数量。
+     * @param string  $key   键
+     * @param integer $start 开始位置
+     * @param integer $end   结束位置
+     * @return integer 删除成员的数量。
      */
     public function zRemRangeByScore($key, $start, $end)
     {
@@ -1010,10 +1025,10 @@ class Rdb
     /**
      * 删除集合中，score值在start end之间的元素　不包括start end
      *
-     * @param string $key   键
-     * @param int    $start 开始位置
-     * @param int    $end   结束位置
-     * @return [type]        [description]
+     * @param string  $key   键
+     * @param integer $start 开始位置
+     * @param integer $end   结束位置
+     * @return integer
      */
     public function zRemRangeByRank($key, $start, $end)
     {
@@ -1023,7 +1038,8 @@ class Rdb
     /**
      * 返回集合元素个数。
      * 
-     * @param [type] $key   键
+     * @param string $key   键
+     * @return integer
      */
     public function zCard($key)
     {
@@ -1033,8 +1049,8 @@ class Rdb
     /**
      * 返回集合元素个数。
      *
-     * @param  [type] $key 键
-     * @return [type]      [description]
+     * @param  string $key 键
+     * @return integer
      */
     public function zSize($key)
     {
@@ -1048,10 +1064,10 @@ class Rdb
      * 如果key对应的值不是有序列表，那么将会发生错误。
      * 指定的score的值应该是能够转换为数字值的字符串，并且接收双精度浮点数。同时，你也可用提供一个负值，这样将减少score的值。
      *
-     * @param  [type] $key    键
-     * @param  [type] $value  值
-     * @param  [type] $member 成员
-     * @return [type]         [description]
+     * @param  string $key    键
+     * @param  float  $value  值
+     * @param  string $member 成员
+     * @return float
      */
     public function zIncrBy($key, $value, $member)
     {
@@ -1065,7 +1081,8 @@ class Rdb
      * 在此期间如果key的值如果发生的改变，刚不能为key设定值
      * 可以重新取得Key的值。
      * 
-     * @param [type] $key   键
+     * @param string $key   键
+     * @return mixed
      */
     public function watch($key)
     {
@@ -1075,12 +1092,13 @@ class Rdb
     /**
      * 取消当前链接对所有key的watch
      *  EXEC 命令或 DISCARD 命令先被执行了的话，那么就不需要再执行 UNWATCH 了
+     * 
+     * @return mixed
      */
     public function unwatch()
     {
         return $this->handler->unwatch();
     }
-
 
     /**
      * 开启一个事务
@@ -1088,8 +1106,8 @@ class Rdb
      * 默认是Redis::MULTI模式，
      * Redis::PIPELINE管道模式速度更快，但没有任何保证原子性有可能造成数据的丢失
      *
-     * @param [type] $type  事务启动方式
-     * @return void
+     * @param integer $type  事务启动方式
+     * @return mixed
      */
     public function multi($type = Redis::MULTI)
     {
@@ -1099,6 +1117,8 @@ class Rdb
     /**
      * 执行一个事务
      * 收到 EXEC 命令后进入事务执行，事务中任意命令执行失败，其余的命令依然被执行
+     * 
+     * @return mixed
      */
     public function exec()
     {
@@ -1107,6 +1127,8 @@ class Rdb
 
     /**
      * 回滚一个事务
+     * 
+     * @return mixed
      */
     public function discard()
     {
@@ -1118,9 +1140,9 @@ class Rdb
     /**
      * 订阅频道
      *
-     * @param  [type] $key      订阅的频道名，可字符串，可数组
-     * @param  [type] $callback 回调函数，function($redis, $chan, $msg){}
-     * @return [type]           [description]
+     * @param  string $key      订阅的频道名，可字符串，可数组
+     * @param  mixed  $callback 回调函数，function($redis, $chan, $msg){}
+     * @return mixed
      */
     public function subscribe($key, $callback)
     {
@@ -1130,9 +1152,9 @@ class Rdb
     /**
      * 发布订阅
      *
-     * @param  [type] $channel 发布的频道
-     * @param  [type] $messgae 发布信息
-     * @return int             订阅数
+     * @param  string $channel 发布的频道
+     * @param  string $messgae 发布信息
+     * @return integer 订阅数
      */
     public function publish($channel, $messgae)
     {
@@ -1143,9 +1165,9 @@ class Rdb
     /************* 管理操作命令 *****************/
 
     /**
-     * 测试当前链接是不是已经失效
-     * 没有失效返回+PONG
-     * 失效返回false
+     * 测试当前链接是不是已经失效，没有失效返回+PONG，失效返回false
+     * 
+     * @return string|false
      */
     public function ping()
     {
@@ -1155,8 +1177,8 @@ class Rdb
     /**
      * 密码认证
      *
-     * @param  [type] $auth 密码
-     * @return [type]       [description]
+     * @param  string $auth 密码
+     * @return boolean
      */
     public function auth($auth)
     {
@@ -1166,8 +1188,8 @@ class Rdb
     /**
      * 选择数据库
      *
-     * @param int $dbId 数据库ID号
-     * @return bool
+     * @param integer $dbId 数据库ID号
+     * @return boolean
      */
     public function select($dbId)
     {
@@ -1177,9 +1199,9 @@ class Rdb
     /**
      * 移动一个KEY-VALUE到另一个DB
      *
-     * @param  [type] $key     key值
-     * @param  [type] $dbindex 要移动到的数据库ID
-     * @return [type]          [description]
+     * @param  string $key     key值
+     * @param  integer $dbindex 要移动到的数据库ID
+     * @return boolean
      */
     public function move($key, $dbindex)
     {
@@ -1189,9 +1211,9 @@ class Rdb
     /**
      * 重命名一个KEY
      *
-     * @param  [type] $key     键名
-     * @param  [type] $new_key 新的键名
-     * @return [type]          [description]
+     * @param  string $key     键名
+     * @param  string $new_key 新的键名
+     * @return boolean
      */
     public function rename($key, $new_key)
     {
@@ -1201,9 +1223,9 @@ class Rdb
     /**
      * 复制一个KEY的VALUE到一个新的KEY
      *
-     * @param  [type] $key     键名
-     * @param  [type] $new_key 新的键名
-     * @return [type]          [description]
+     * @param  string $key     键名
+     * @param  string $new_key 新的键名
+     * @return boolean
      */
     public function renameNx($key, $new_key)
     {
@@ -1213,7 +1235,7 @@ class Rdb
     /**
      * 清空当前数据库
      *
-     * @return bool
+     * @return boolean
      */
     public function flushDB()
     {
@@ -1223,7 +1245,7 @@ class Rdb
     /**
      * 清空所有数据库
      *
-     * @return bool
+     * @return boolean
      */
     public function flushAll()
     {
@@ -1243,7 +1265,7 @@ class Rdb
     /**
      * 重置状态
      *
-     * @return [type] [description]
+     * @return boolean
      */
     public function resetStat()
     {
@@ -1252,6 +1274,8 @@ class Rdb
 
     /**
      * 同步保存数据到磁盘
+     * 
+     * @return boolean
      */
     public function save()
     {
@@ -1260,6 +1284,8 @@ class Rdb
 
     /**
      * 异步保存数据到磁盘
+     * 
+     * @return boolean
      */
     public function bgSave()
     {
@@ -1289,8 +1315,8 @@ class Rdb
     /**
      * 返回一个key的数据类型
      *
-     * @param  [type] $key 键
-     * @return [type]      [description]
+     * @param  string $key 键
+     * @return string
      */
     public function type($key)
     {
@@ -1301,7 +1327,7 @@ class Rdb
      * 发送一个字符串到Redis,返回一个相同的字符串
      *
      * @param  string $string 字符串
-     * @return [type]         [description]
+     * @return string
      */
     public function out($string)
     {
@@ -1311,8 +1337,9 @@ class Rdb
     /**
      * 为一个key设定过期时间, 单位为秒
      *
-     * @param [type] $key       键
-     * @param [type] $expire    过期时间，单位秒
+     * @param string  $key       键
+     * @param integer $expire    过期时间，单位秒
+     * @return boolean
      */
     public function expire($key, $expire)
     {
@@ -1322,9 +1349,9 @@ class Rdb
     /**
      * 为一个key设定过期时间, 单位为毫秒
      *
-     * @param  [type] $key    键
-     * @param  [type] $expire 过期时间，单位毫秒
-     * @return [type]         [description]
+     * @param  string  $key    键
+     * @param  integer $expire 过期时间，单位毫秒
+     * @return boolean
      */
     public function pexpire($key, $expire)
     {
@@ -1334,9 +1361,9 @@ class Rdb
     /**
      * 为一个key设定生命周期
      *
-     * @param  [type] $key    key名称
-     * @param  [type] $expire 过期时间, Unix时间戳
-     * @return [type]         [description]
+     * @param  string $key    key名称
+     * @param  integer $expire 过期时间, Unix时间戳
+     * @return boolean
      */
     public function expireAt($key, $expire)
     {
@@ -1346,8 +1373,8 @@ class Rdb
     /**
      * 删除一个KEY的生命周期设置
      *
-     * @param  [type] $key 键
-     * @return [type]      [description]
+     * @param  string $key 键
+     * @return boolean
      */
     public function persist($key)
     {
@@ -1357,7 +1384,8 @@ class Rdb
     /**
      * 返回一个key还有多久过期，单位秒
      *
-     * @param [type] $key   键
+     * @param string $key   键
+     * @return integer
      */
     public function ttl($key)
     {
@@ -1367,8 +1395,8 @@ class Rdb
     /**
      * 返回一个key还有多久过期, 单位毫秒
      *
-     * @param  [type] $key 键
-     * @return [type]      [description]
+     * @param  string $key 键
+     * @return integer
      */
     public function pttl($key)
     {
@@ -1376,18 +1404,9 @@ class Rdb
     }
 
     /**
-     * 设定一个key什么时候过期，time为一个时间戳
-     *
-     * @param [type] $key   键
-     * @param [type] $time  时间戳
-     */
-    public function exprieAt($key, $time)
-    {
-        return $this->handler->expireAt($key, $time);
-    }
-
-    /**
      * 关闭服务器链接
+     * 
+     * @return void
      */
     public function close()
     {
@@ -1396,6 +1415,8 @@ class Rdb
 
     /**
      * 返回当前数据库key数量
+     * 
+     * @return integer
      */
     public function dbSize()
     {
@@ -1404,6 +1425,8 @@ class Rdb
 
     /**
      * 返回一个随机key
+     * 
+     * @return string
      */
     public function randomKey()
     {
@@ -1413,8 +1436,9 @@ class Rdb
     /**
      * 设置客户端的选项
      *
-     * @param [type] $key   键
-     * @param [type] $value 值
+     * @param string $key   键
+     * @param string $value 值
+     * @return boolean
      */
     public function setOption($key, $value)
     {
@@ -1424,7 +1448,8 @@ class Rdb
     /**
      * 取得客户端的选项
      *
-     * @param [type] $key   键
+     * @param string $key   键
+     * @return mixed
      */
     public function getOption($key)
     {
@@ -1434,7 +1459,7 @@ class Rdb
     /**
      * 使用aof来进行数据库持久化
      *
-     * @return [type] [description]
+     * @return boolean
      */
     public function bgrewriteaof()
     {
@@ -1444,9 +1469,9 @@ class Rdb
     /**
      * 选择从服务器
      *
-     * @param  [type] $ip   IP
-     * @param  [type] $port 端口
-     * @return [type]       [description]
+     * @param  string  $ip   IP
+     * @param  integer $port 端口
+     * @return boolean
      */
     public function slaveof($ip, $port)
     {
@@ -1456,9 +1481,9 @@ class Rdb
     /**
      * 声明一个对象，并指向KEY
      *
-     * @param  [type] $type 检索的类型
-     * @param  [type] $key  key名
-     * @return [type]       [description]
+     * @param  string $type 检索的类型
+     * @param  string $key  key名
+     * @return mixed
      */
     public function object($type, $key)
     {
@@ -1471,9 +1496,9 @@ class Rdb
     /**
      * 设置REIDS系统配置
      *
-     * @param [type] $key   键
-     * @param [type] $value 值
-     * @return void
+     * @param string $key   键
+     * @param string $value 值
+     * @return boolean
      */
     public function setConfig($key, $value)
     {
@@ -1483,8 +1508,8 @@ class Rdb
     /**
      * 获取REIDS系统配置, *表示所有
      *
-     * @param [type] $key   键，*表示所有
-     * @return void
+     * @param string $key   键，*表示所有
+     * @return mixed
      */
     public function getConfig($key)
     {
@@ -1494,8 +1519,8 @@ class Rdb
     /**
      * 在服务器端执行LUA脚本
      *
-     * @param  [type] $script Lua脚本
-     * @return [type]         [description]
+     * @param  string $script Lua脚本
+     * @return mixed
      */
     public function run($script)
     {
@@ -1505,7 +1530,7 @@ class Rdb
     /**
      * 取得最后的错误消息
      *
-     * @return [type] [description]
+     * @return mixed
      */
     public function getLastError()
     {
@@ -1516,8 +1541,8 @@ class Rdb
      * 把一个KEY从REIDS中销毁, 可以使用RESTORE函数恢复出来。
      * 使用DUMP销毁的VALUE, 函数将返回这个数据在REIDS中的二进制内存地址
      *
-     * @param  [type] $key [==键]
-     * @return [type]      [description]
+     * @param  string $key 键
+     * @return mixed
      */
     public function dump($key)
     {
@@ -1527,10 +1552,10 @@ class Rdb
     /**
      * 恢复DUMP函数销毁的VALUE到一个新的KEY上
      *
-     * @param  [type]  $key    新的key名
-     * @param  [type]  $value  dump返回的地址值
+     * @param  string  $key    新的key名
+     * @param  string  $value  dump返回的地址值
      * @param  integer $expire 生存时间, 0则不设置
-     * @return [type]          [description]
+     * @return mixed
      */
     public function restore($key, $value, $expire = 0)
     {
@@ -1540,7 +1565,7 @@ class Rdb
     /**
      * 返回当前REDIS服务器的生存时间
      *
-     * @return [type] [description]
+     * @return mixed
      */
     public function time()
     {

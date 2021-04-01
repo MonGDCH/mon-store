@@ -2,6 +2,8 @@
 
 namespace mon\store;
 
+use mon\util\Instance;
+
 /**
  * Cookie操作类
  *
@@ -10,6 +12,8 @@ namespace mon\store;
  */
 class Cookie
 {
+    use Instance;
+
     /**
      * Cookie相关配置
      *
@@ -35,9 +39,9 @@ class Cookie
     /**
      * 已初始化标志位
      *
-     * @var [type]
+     * @var null
      */
-    protected $init;
+    protected $init = null;
 
     /**
      * 构造方法
@@ -53,7 +57,7 @@ class Cookie
      * 注册Cookie
      * 
      * @param  array  $config 配置信息
-     * @return void
+     * @return Cookie
      */
     public function register(array $config = [])
     {
@@ -65,13 +69,14 @@ class Cookie
         }
 
         $this->init = true;
+        return $this;
     }
 
     /**
      * 设置获取cookie前缀
      * 
      * @param  string $prefix Cookie前缀
-     * @return string|null
+     * @return string|void
      */
     public function prefix($prefix = '')
     {
@@ -139,7 +144,6 @@ class Cookie
     public function has($name, $prefix = null)
     {
         !isset($this->init) && $this->register();
-
         $prefix = !is_null($prefix) ? $prefix : $this->config['prefix'];
         $name   = $prefix . $name;
         return isset($_COOKIE[$name]);
@@ -156,7 +160,6 @@ class Cookie
     public function get($key = '', $default = null, $prefix = null)
     {
         !isset($this->init) && $this->register();
-
         $prefix = !is_null($prefix) ? $prefix : $this->config['prefix'];
         $name = $prefix . $key;
         if ($key == '') {
@@ -216,7 +219,6 @@ class Cookie
     {
         if (empty($_COOKIE)) return;
         !isset($this->init) && $this->register();
-
         // 要删除的cookie前缀，不指定则删除config设置的指定前缀
         $config = $this->config;
         $prefix = !is_null($prefix) ? $prefix : $config['prefix'];

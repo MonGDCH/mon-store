@@ -8,6 +8,12 @@ composer require mongdch/store
 ```
 ## 版本
 
+# v1.1.0
+
+* 重写Cache类，支持对Redis缓存的使用
+* 优化Rdb类，完善对redis扩展支持
+* 优化Session类、Cookie类，支持原生单例调用
+
 # v1.0.7
 
 * 优化代码，增强File类
