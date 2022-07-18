@@ -905,11 +905,12 @@ class Rdb
      * @param string  $key   键
      * @param integer $start 开始位置
      * @param integer $end   结束位置
+     * @param boolean $order 是否返回排序值
      * @return array
      */
-    public function zRange($key, $start, $end)
+    public function zRange($key, $start, $end, $order = false)
     {
-        return $this->handler->zRange($key, $start, $end);
+        return $this->handler->zRange($key, $start, $end, $order);
     }
 
     /**
@@ -918,11 +919,12 @@ class Rdb
      * @param string  $key   键
      * @param integer $start 开始位置
      * @param integer $end   结束位置
+     * @param boolean $order 是否返回排序值
      * @return array
      */
-    public function zRevRange($key, $start, $end)
+    public function zRevRange($key, $start, $end, $order = false)
     {
-        return $this->handler->zRevRange($key, $start, $end);
+        return $this->handler->zRevRange($key, $start, $end, $order);
     }
 
     /**

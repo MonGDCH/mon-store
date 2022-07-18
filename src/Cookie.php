@@ -6,9 +6,9 @@ use mon\util\Instance;
 
 /**
  * Cookie操作类
- *
- * @author Mon 985558837@qq.com
- * @version v1.0
+ * 
+ * @author Mon <985558837@qq.com>
+ * @version 1.0.0
  */
 class Cookie
 {

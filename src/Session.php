@@ -8,9 +8,9 @@ use mon\util\Instance;
  * Session辅助类
  *
  * @author Mon <985558837@qq.com>
- * @version v2.0 2017-11-29
- * @version v2.1 2019-12-02 优化代码，修复clear方法清除不干净的问题
- * @version v2.2 2019-12-18 调整定义seesion配置为为启用session_start()才定义，防止在PHP7.2以上的版本出现session_start()后定义session配置的错误
+ * @version 2.0.0 2017-11-29
+ * @version 2.1.0 2019-12-02 优化代码，修复clear方法清除不干净的问题
+ * @version 2.2.0 2019-12-18 调整定义seesion配置为为启用session_start()才定义，防止在PHP7.2以上的版本出现session_start()后定义session配置的错误
  */
 class Session
 {
@@ -19,7 +19,7 @@ class Session
     /**
      * 配置信息
      *
-     * @var [type]
+     * @var array
      */
     protected $config = [
         // session前缀
